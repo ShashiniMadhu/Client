@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Header from '../../components/header'; // Import your actual Header component
 import TutorPage from './Tutor';
-import About from './Aboutus';
+import About from '../../components/Aboutus';
 import Footer from '../../components/footer';
 import Dashboard from './Dashboard'; 
 import Resources from './Resources'; 

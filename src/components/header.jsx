@@ -30,10 +30,8 @@ const Header = ({ userType = 'student', userName = 'SkillMentor' }) => {
       { label: 'Analytics', href: '/analytics' }
     ],
     mentor: [
-      { label: 'Dashboard', href: '/dashboard' },
-      { label: 'Mentees', href: '/mentees' },
       { label: 'Sessions', href: '/sessions' },
-      { label: 'Resources', href: '/resources' },
+      { label: 'About Us', href: '/about' },
       { label: 'Profile', href: '/profile' }
     ]
   };
@@ -52,7 +50,7 @@ const Header = ({ userType = 'student', userName = 'SkillMentor' }) => {
     mentor: {
       displayName: 'Mentor Hub',
       logoColor: 'bg-[#450063]',
-      buttonText: 'Profile'
+      buttonText: 'Login'
     }
   };
 
