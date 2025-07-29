@@ -27,7 +27,8 @@ const LandingPage = () => {
     profession: '',
     subject: '',
     qualification: '',
-    session_fee: ''
+    session_fee: '',
+    bio:''
   });
   // Login state for error/loading
   const navigate = useNavigate();
@@ -49,7 +50,8 @@ const LandingPage = () => {
       profession: '',
       subject: '',
       qualification: '',
-      session_fee: ''
+      session_fee: '',
+      bio: ''
     });
   };
 
@@ -137,7 +139,8 @@ const LandingPage = () => {
         qualification: formData.qualification,
         session_fee: parseFloat(formData.session_fee),
         password: formData.password,
-        role: 'mentor'
+        role: 'mentor',
+        bio: formData.bio
       };
       endpoint = 'http://localhost:8080/api/v1/academic/mentor';
     }
@@ -631,6 +634,22 @@ const LandingPage = () => {
                               className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
                             />
                           </div>
+                          <div>
+                            <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-2">
+                              Bio *
+                            </label>
+                            <textarea
+                              id="bio"
+                              name="bio"
+                              value={formData.bio}
+                              onChange={handleInputChange}
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9414d1] focus:border-transparent transition-all duration-200"
+                              placeholder="Tell us about yourself"
+                              rows={4}
+                              required
+                            />
+                          </div>
+
                         </>
                       )}
                       {/* Password Fields */}
