@@ -13,8 +13,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/student/*" element={<Student />} />
-        <Route path="/mentor" element={<MentorPage />} />
-        <Route path="/about" element={<AboutUs />} />
+        <Route path="/mentor/*" element={<MentorPage />} />
       </Routes>
     </Router>
   );

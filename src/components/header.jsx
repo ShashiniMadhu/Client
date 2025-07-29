@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 
@@ -22,18 +21,10 @@ const Header = ({ userType = 'student', userName = 'SkillMentor' }) => {
       { label: 'Resources', href: '/student/resources' },
       { label: 'Dashboard', href: '/student/dashboard' }
     ],
-    tutor: [
-      { label: 'Dashboard', href: '/dashboard' },
-      { label: 'Classes', href: '/classes' },
-      { label: 'Students', href: '/students' },
-      { label: 'Schedule', href: '/schedule' },
-      { label: 'Analytics', href: '/analytics' }
-    ],
     mentor: [
-      { label: 'Sessions', href: '/sessions' },
-      { label: 'About Us', href: '/about' },
-      { label: 'Profile', href: '/profile' }
-    ]
+    { label: 'Classroom', href: '/mentor' },
+    { label: 'Sessions', href: '/mentor/sessions' } // Use absolute path
+  ]
   };
 
   const userTypeConfig = {
@@ -229,7 +220,7 @@ const Header = ({ userType = 'student', userName = 'SkillMentor' }) => {
 
             {/* Modal Body */}
             <div className="p-6">
-              <div onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Name field - only for signup */}
                 {isSignup && (
                   <div>
@@ -321,7 +312,7 @@ const Header = ({ userType = 'student', userName = 'SkillMentor' }) => {
                 >
                   {isSignup ? 'Create Account' : 'Sign In'}
                 </button>
-                </div>
+              </form>
 
               {/* Divider */}
               <div className="flex items-center my-6">
