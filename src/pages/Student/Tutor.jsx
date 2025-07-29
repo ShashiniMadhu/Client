@@ -57,21 +57,27 @@ const ClassCard = ({ classData, onSchedule }) => {
   };
 
   const handleSchedule = () => {
-    if (selectedDate && selectedTime) {
-      setShowScheduleModal(false);
-      setSelectedDate(null);
-      setSelectedTime(null);
-      // Call parent callback with session data
-      if (onSchedule) {
-        onSchedule({
-          mentorName: `${classData.mentor.first_name} ${classData.mentor.last_name}`,
-          sessionDate: `${currentMonth.getMonth() + 1}/${selectedDate}/${currentMonth.getFullYear()}`,
-          sessionTime: selectedTime,
-          sessionFee: classData.mentor.session_fee
-        });
-      }
+  if (selectedDate && selectedTime) {
+    setShowScheduleModal(false);
+    setSelectedDate(null);
+    setSelectedTime(null);
+    
+    // Format date properly (YYYY-MM-DD format)
+    const formattedDate = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`;
+    
+    if (onSchedule) {
+      onSchedule({
+        mentorName: `${classData.mentor.first_name} ${classData.mentor.last_name}`,
+        classRoomId: classData.class_room_id, // Add this
+        mentorId: classData.mentor.mentor_id, // Add this
+        sessionDate: formattedDate, // Use properly formatted date
+        sessionTime: selectedTime,
+        sessionFee: classData.mentor.session_fee,
+        topic: classData.title // Use class title as default topic
+      });
     }
-  };
+  }
+};
 
   return (
     <>
@@ -304,6 +310,8 @@ const ClassCard = ({ classData, onSchedule }) => {
 
 // Main Tutoe Page Component
 const TutoePage = () => {
+  const STUDENT_ID = 1;
+
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -372,11 +380,42 @@ const TutoePage = () => {
   // Get unique subjects for filter
   const subjects = [...new Set(classes.map(c => c.mentor.subject))];
 
-  const handleSchedule = (sessionData) => {
-    console.log('Session scheduled:', sessionData);
-    // You can add additional logic here like showing a success message or making an API call
-    alert(`Session scheduled with ${sessionData.mentorName} on ${sessionData.sessionDate} at ${sessionData.sessionTime} for LKR ${sessionData.sessionFee}`);
-  };
+  const handleSchedule = async (sessionData) => {
+  try {
+    // Create session payload
+    const sessionPayload = {
+      student_id: STUDENT_ID,
+      class_room_id: sessionData.classRoomId,
+      mentor_id: sessionData.mentorId,
+      topic: sessionData.title || "General Session", // You might want to add topic input
+      date: sessionData.sessionDate, // Need to format this properly
+      start_time: sessionData.sessionTime + ":00" // Convert "10:00" to "10:00:00"
+    };
+
+    // Make API call to create session
+    const response = await fetch('http://localhost:8080/api/v1/academic/session', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(sessionPayload)
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create session');
+    }
+
+    const createdSession = await response.json();
+    console.log('Session created:', createdSession);
+    
+    // Show success message
+    alert(`Session successfully scheduled! Session ID: ${createdSession.session_id}`);
+    
+  } catch (error) {
+    console.error('Error creating session:', error);
+    alert('Failed to schedule session. Please try again.');
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50">
