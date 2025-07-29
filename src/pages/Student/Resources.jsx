@@ -469,27 +469,6 @@ const Resources = () => {
           </div>
         )}
       </div>
-
-      {/* CTA Section */}
-      <div className="bg-gradient-to-br from-[#280120] via-[#450063] to-[#9414d1] py-24">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-4xl font-black text-white mb-6">Ready to Level Up Your Skills?</h2>
-          <p className="text-xl text-white/80 mb-8 leading-relaxed">
-            Get personalized mentorship and access to exclusive premium resources to accelerate your career growth.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="group bg-gradient-to-r from-[#03b2ed] to-[#fd59ca] hover:from-[#fd59ca] hover:to-[#03b2ed] text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105">
-              <div className="flex items-center justify-center space-x-2">
-                <span>Find Your Mentor</span>
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-              </div>
-            </button>
-            <button className="bg-white/20 backdrop-blur-lg border border-white/30 hover:bg-white/30 text-white font-bold py-4 px-8 rounded-xl transition-all duration-300">
-              Browse All Resources
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
