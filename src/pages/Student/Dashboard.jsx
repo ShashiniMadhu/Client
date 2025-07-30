@@ -112,21 +112,35 @@ const SessionCard = ({ sessionData }) => {
           </div>
         </div>
 
+        {/* Session Status */}
+        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-2xl border border-purple-200 hover:shadow-md transition-all duration-300">
+          <div className="flex items-center space-x-4">
+            <div className="w-8 h-8 bg-gradient-to-br from-[#450063] to-[#9414d1] rounded-xl flex items-center justify-center shadow-sm">
+              <Star className="w-4 h-4 text-white" />
+            </div>
+            <span className="text-base font-semibold text-gray-800">Status</span>
+          </div>
+          <span className={`text-sm font-bold ${
+            sessionData.status === 'completed' ? 'text-green-600' :
+            sessionData.status === 'pending' ? 'text-yellow-600' :
+            sessionData.status === 'cancelled' ? 'text-red-600' :
+            'text-gray-600'
+          } capitalize`}>
+            {sessionData.status}
+          </span>
+        </div>
+
         {/* Action buttons */}
         <div className="space-y-3">
-          <button className="w-full bg-gradient-to-r from-[#280120] via-[#450063] to-[#9414d1] hover:from-[#9414d1] hover:via-[#450063] hover:to-[#280120] text-white font-bold py-4 px-8 rounded-2xl transition-all duration-500 shadow-lg hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-purple-300 focus:ring-offset-2 transform hover:scale-[1.02] group">
-            <div className="flex items-center justify-center space-x-3">
-              <Calendar className="w-5 h-5 group-hover:rotate-6 transition-transform duration-300" />
-              <span className="text-base">Join Session</span>
-            </div>
-          </button>
-          
-          <button className="w-full bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 text-[#280120] font-bold py-3 px-8 rounded-2xl transition-all duration-300 border border-purple-200 hover:border-purple-300">
-            <div className="flex items-center justify-center space-x-3">
-              <Mail className="w-5 h-5" />
-              <span className="text-base">Contact Mentor</span>
-            </div>
-          </button>
+          {sessionData.status === "accepted" && (
+            <button className="w-full bg-gradient-to-r from-[#280120] via-[#450063] to-[#9414d1] hover:from-[#9414d1] hover:via-[#450063] hover:to-[#280120] text-white font-bold py-4 px-8 rounded-2xl transition-all duration-500 shadow-lg hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-purple-300 focus:ring-offset-2 transform hover:scale-[1.02] group">
+              <div className="flex items-center justify-center space-x-3">
+                <Calendar className="w-5 h-5 group-hover:rotate-6 transition-transform duration-300" />
+                <span className="text-base">Join Session</span>
+              </div>
+            </button>
+          )}
+        
         </div>
       </div>
     </div>
