@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, Users, BookOpen, User, Mail, Phone, MapPin, Sparkles, TrendingUp, Check, X, Link, ExternalLink, Plus } from 'lucide-react';
+import { Calendar, Clock, Users, BookOpen, User, Mail, Phone, MapPin, Sparkles, TrendingUp, Check, X, ExternalLink } from 'lucide-react';
 
 const MentorSessions = () => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [actionLoading, setActionLoading] = useState({});
-  const [sessionLinks, setSessionLinks] = useState({});
-  const mentorId = 1; // Keep as 1 until we get from URL
+  const mentorId = 6;
 
   useEffect(() => {
     fetchSessions();
@@ -25,54 +23,6 @@ const MentorSessions = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const updateSessionStatus = async (sessionId, status, sessionLink = '') => {
-    try {
-      setActionLoading(prev => ({ ...prev, [sessionId]: status }));
-      
-      let url = `http://localhost:8080/api/v1/academic/session/${sessionId}/status?status=${status}`;
-      if (sessionLink) {
-        url += `&sessionLink=${encodeURIComponent(sessionLink)}`;
-      }
-      
-      const response = await fetch(url, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.ok) throw new Error(`Failed to ${status} session`);
-      
-      const updatedSession = await response.json();
-      
-      // Update the session in the local state
-      setSessions(prev => prev.map(session => 
-        session.session_id === sessionId ? updatedSession : session
-      ));
-      
-      // Clear the session link input for this session
-      setSessionLinks(prev => ({ ...prev, [sessionId]: '' }));
-      
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setActionLoading(prev => ({ ...prev, [sessionId]: null }));
-    }
-  };
-
-  const handleAcceptWithLink = (sessionId) => {
-    const link = sessionLinks[sessionId];
-    if (!link || !link.trim()) {
-      alert('Please enter a session link before accepting');
-      return;
-    }
-    updateSessionStatus(sessionId, 'accept', link.trim());
-  };
-
-  const handleSessionLinkChange = (sessionId, value) => {
-    setSessionLinks(prev => ({ ...prev, [sessionId]: value }));
   };
 
   const formatDate = (dateString) => {
@@ -112,7 +62,7 @@ const MentorSessions = () => {
         return (
           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
             <Clock className="w-4 h-4 mr-1" />
-            Pending
+            Pending Admin Approval
           </span>
         );
     }
@@ -169,12 +119,12 @@ const MentorSessions = () => {
             <h1 className="text-5xl font-black text-white mb-4 leading-tight">
               Session
               <span className="block bg-gradient-to-r from-[#03b2ed] via-[#fd59ca] to-[#03b2ed] bg-clip-text text-transparent">
-                Management
+                Overview
               </span>
             </h1>
             
             <p className="text-lg text-white/80 font-medium max-w-2xl mx-auto">
-              Manage and track all your mentoring sessions in one place
+              View and track all your assigned mentoring sessions
             </p>
           </div>
         </div>
@@ -307,63 +257,25 @@ const MentorSessions = () => {
                   {/* Action Section */}
                   <div className="border-t border-slate-200 pt-6">
                     {session.status === 'accepted' && session.session_link ? (
-                    <div className="flex justify-center">
-                      <a
-                        href={session.session_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center space-x-2 bg-gradient-to-r from-[#9414d1] to-[#03b2ed] text-white px-6 py-3 rounded-lg font-semibold hover:from-[#7a1099] hover:to-[#0299cc] transition-all duration-200 transform hover:scale-105"
-                      >
-                        <ExternalLink className="w-5 h-5" />
-                        <span>Join Session</span>
-                      </a>
-                    </div>
+                      <div className="flex justify-center">
+                        <a
+                          href={session.session_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center space-x-2 bg-gradient-to-r from-[#9414d1] to-[#03b2ed] text-white px-6 py-3 rounded-lg font-semibold hover:from-[#7a1099] hover:to-[#0299cc] transition-all duration-200 transform hover:scale-105"
+                        >
+                          <ExternalLink className="w-5 h-5" />
+                          <span>Join Session</span>
+                        </a>
+                      </div>
                     ) : session.status === 'rejected' ? (
-                      // Show rejected message
                       <div className="text-center">
-                        <p className="text-red-600 font-medium">Session Rejected</p>
+                        <p className="text-red-600 font-medium">Session Rejected by Admin</p>
                       </div>
                     ) : (
-                      // Show accept/reject options for pending sessions
-                      <div className="space-y-4">
-                        <div className="flex items-center space-x-3">
-                          <Link className="w-5 h-5 text-slate-600" />
-                          <input
-                            type="url"
-                            placeholder="Enter session link (e.g., Zoom, Meet, etc.)"
-                            value={sessionLinks[session.session_id] || ''}
-                            onChange={(e) => handleSessionLinkChange(session.session_id, e.target.value)}
-                            className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#9414d1] focus:border-transparent outline-none"
-                          />
-                        </div>
-                        
-                        <div className="flex justify-center space-x-4">
-                          <button
-                            onClick={() => handleAcceptWithLink(session.session_id)}
-                            disabled={actionLoading[session.session_id] === 'accept'}
-                            className="inline-flex items-center space-x-2 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {actionLoading[session.session_id] === 'accept' ? (
-                              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            ) : (
-                              <Check className="w-5 h-5" />
-                            )}
-                            <span>Accept Session</span>
-                          </button>
-                          
-                          <button
-                            onClick={() => updateSessionStatus(session.session_id, 'reject')}
-                            disabled={actionLoading[session.session_id] === 'reject'}
-                            className="inline-flex items-center space-x-2 bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {actionLoading[session.session_id] === 'reject' ? (
-                              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            ) : (
-                              <X className="w-5 h-5" />
-                            )}
-                            <span>Reject Session</span>
-                          </button>
-                        </div>
+                      <div className="text-center">
+                        <p className="text-yellow-600 font-medium">Waiting for Admin Approval</p>
+                        <p className="text-sm text-slate-500 mt-1">The admin will review and approve this session</p>
                       </div>
                     )}
                   </div>

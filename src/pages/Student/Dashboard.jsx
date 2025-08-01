@@ -131,17 +131,17 @@ const SessionCard = ({ sessionData }) => {
         </div>
 
         {/* Action buttons */}
-        <div className="space-y-3">
-          {sessionData.status === "accepted" && (
-            <button className="w-full bg-gradient-to-r from-[#280120] via-[#450063] to-[#9414d1] hover:from-[#9414d1] hover:via-[#450063] hover:to-[#280120] text-white font-bold py-4 px-8 rounded-2xl transition-all duration-500 shadow-lg hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-purple-300 focus:ring-offset-2 transform hover:scale-[1.02] group">
-              <div className="flex items-center justify-center space-x-3">
-                <Calendar className="w-5 h-5 group-hover:rotate-6 transition-transform duration-300" />
-                <span className="text-base">Join Session</span>
-              </div>
-            </button>
-          )}
-        
-        </div>
+        <a 
+          href={sessionData.session_link} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="block w-full bg-gradient-to-r from-[#280120] via-[#450063] to-[#9414d1] hover:from-[#9414d1] hover:via-[#450063] hover:to-[#280120] text-white font-bold py-4 px-8 rounded-2xl transition-all duration-500 shadow-lg hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-purple-300 focus:ring-offset-2 transform hover:scale-[1.02] group text-center"
+        >
+          <div className="flex items-center justify-center space-x-3">
+            <Calendar className="w-5 h-5 group-hover:rotate-6 transition-transform duration-300" />
+            <span className="text-base">Join Session</span>
+          </div>
+        </a>
       </div>
     </div>
   );
