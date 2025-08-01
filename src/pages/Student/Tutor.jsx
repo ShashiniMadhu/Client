@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Users, Star, Clock, ChevronRight, ChevronLeft, X, User, Briefcase, Award, DollarSign, BookOpen, AlertCircle, Loader } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // ClassCard Component
 const ClassCard = ({ classData, onSchedule }) => {
@@ -312,6 +313,9 @@ const ClassCard = ({ classData, onSchedule }) => {
 const TutoePage = () => {
   const STUDENT_ID = 1;
 
+  const navigate = useNavigate();
+
+
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -380,16 +384,17 @@ const TutoePage = () => {
   // Get unique subjects for filter
   const subjects = [...new Set(classes.map(c => c.mentor.subject))];
 
-  const handleSchedule = async (sessionData) => {
+const handleSchedule = async (sessionData) => {
   try {
-    // Create session payload
+    // Create session payload (without slip_link)
     const sessionPayload = {
       student_id: STUDENT_ID,
       class_room_id: sessionData.classRoomId,
       mentor_id: sessionData.mentorId,
-      topic: sessionData.title || "General Session", // You might want to add topic input
-      date: sessionData.sessionDate, // Need to format this properly
-      start_time: sessionData.sessionTime + ":00" // Convert "10:00" to "10:00:00"
+      topic: sessionData.topic || "General Session",
+      date: sessionData.sessionDate,
+      start_time: sessionData.sessionTime + ":00",
+      status: "pending" // Set initial status as pending
     };
 
     // Make API call to create session
@@ -408,8 +413,17 @@ const TutoePage = () => {
     const createdSession = await response.json();
     console.log('Session created:', createdSession);
     
-    // Show success message
-    alert(`Session successfully scheduled! Session ID: ${createdSession.session_id}`);
+    // Redirect to checkout page with session data
+    navigate('/student/checkout', {
+      state: {
+        sessionId: createdSession.session_id,
+        mentorName: sessionData.mentorName,
+        sessionDate: sessionData.sessionDate,
+        sessionTime: sessionData.sessionTime,
+        sessionFee: sessionData.sessionFee,
+        topic: sessionData.topic
+      }
+    });
     
   } catch (error) {
     console.error('Error creating session:', error);
