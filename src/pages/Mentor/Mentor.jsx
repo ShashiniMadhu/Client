@@ -4,6 +4,7 @@ import Header from '../../components/header';
 import Sessions from './Sessions'; 
 import Classroom  from './Classroom';
 import Footer from '../../components/footer';
+import Profile from './Profile';
 
 const Mentor = () => {
   // Define user role here - this is the key variable you control
@@ -18,6 +19,7 @@ const Mentor = () => {
       <Routes>
         <Route index element={<Classroom />} />
         <Route path="sessions" element={<Sessions />} />
+        <Route path="profile" element={<Profile />} />
       </Routes>
 
       <Footer />

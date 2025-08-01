@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { User, Search, Mail, Phone, MapPin, BookOpen, Award, DollarSign, Eye, Edit, Trash2, Plus, Users } from 'lucide-react';
+import { User, Search, Mail, Phone, BookOpen, Award, DollarSign, Eye, Edit, Trash2, Users, X } from 'lucide-react';
 
 const AllMentors = () => {
   const [mentors, setMentors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMentor, setSelectedMentor] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedMentor, setEditedMentor] = useState(null);
+  const [showDeletePopup, setShowDeletePopup] = useState({ show: false, id: null });
 
   useEffect(() => {
     fetchMentors();
@@ -30,6 +33,48 @@ const AllMentors = () => {
     mentor.subject.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/v1/academic/mentor/${showDeletePopup.id}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        setMentors(prev => prev.filter(m => m.mentor_id !== showDeletePopup.id));
+        setShowDeletePopup({ show: false, id: null });
+      } else {
+        alert("Failed to delete mentor.");
+      }
+    } catch (error) {
+      console.error("Error deleting mentor:", error);
+    }
+  };
+
+  const handleUpdate = async () => {
+  try {
+    const response = await fetch('http://localhost:8080/api/v1/academic/mentor', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(editedMentor),
+    });
+
+    if (response.ok) {
+      const updatedMentor = await response.json();
+      setMentors(prev => prev.map(m => m.mentor_id === updatedMentor.mentor_id ? updatedMentor : m));
+      setIsEditing(false);
+      setSelectedMentor(updatedMentor);
+      setEditedMentor(null);
+    } else {
+      const errorText = await response.text();
+      console.error('Update failed:', errorText);
+      alert("Update failed. See console for details.");
+    }
+  } catch (error) {
+    console.error("Update error:", error);
+    alert("Update failed due to network or server error.");
+  }
+};
+
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
@@ -53,7 +98,6 @@ const AllMentors = () => {
                 <p className="text-white/80">Manage and view all registered mentors</p>
               </div>
             </div>
-        
           </div>
         </div>
 
@@ -144,11 +188,21 @@ const AllMentors = () => {
                     <Eye className="w-4 h-4" />
                     <span>View</span>
                   </button>
-                  <button className="flex-1 bg-slate-100 text-slate-600 py-2 px-4 rounded-xl font-medium hover:bg-slate-200 transition-all duration-300 flex items-center justify-center space-x-2">
+                  <button
+                    onClick={() => {
+                      setSelectedMentor(mentor);
+                      setEditedMentor(mentor);
+                      setIsEditing(true);
+                    }}
+                    className="flex-1 bg-slate-100 text-slate-600 py-2 px-4 rounded-xl font-medium hover:bg-slate-200 transition-all duration-300 flex items-center justify-center space-x-2"
+                  >
                     <Edit className="w-4 h-4" />
                     <span>Edit</span>
                   </button>
-                  <button className="bg-red-100 text-red-600 py-2 px-4 rounded-xl font-medium hover:bg-red-200 transition-all duration-300">
+                  <button
+                    onClick={() => setShowDeletePopup({ show: true, id: mentor.mentor_id })}
+                    className="bg-red-100 text-red-600 py-2 px-4 rounded-xl font-medium hover:bg-red-200 transition-all duration-300"
+                  >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -165,90 +219,257 @@ const AllMentors = () => {
           </div>
         )}
 
-        {/* Mentor Detail Modal */}
-        {selectedMentor && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="bg-gradient-to-r from-[#03b2ed] to-[#fd59ca] p-6 rounded-t-2xl">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-white">Mentor Details</h2>
-                  <button
-                    onClick={() => setSelectedMentor(null)}
-                    className="text-white hover:bg-white/20 rounded-full p-2 transition-all duration-300"
-                  >
-                    ×
-                  </button>
-                </div>
-              </div>
-              
-              <div className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="text-sm font-semibold text-slate-500">Full Name</label>
-                    <p className="text-lg text-slate-800">{selectedMentor.title} {selectedMentor.first_name} {selectedMentor.last_name}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-semibold text-slate-500">Subject</label>
-                    <p className="text-slate-800 font-semibold">{selectedMentor.subject}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-semibold text-slate-500">Email</label>
-                    <p className="text-slate-800">{selectedMentor.email}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-semibold text-slate-500">Phone</label>
-                    <p className="text-slate-800">{selectedMentor.phone_number}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-semibold text-slate-500">Session Fee</label>
-                    <p className="text-slate-800 font-bold">${selectedMentor.session_fee}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-semibold text-slate-500">Classroom ID</label>
-                    <p className="text-slate-800">{selectedMentor.class_room_id}</p>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-semibold text-slate-500">Address</label>
-                  <p className="text-slate-800">{selectedMentor.address}</p>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-semibold text-slate-500">Qualification</label>
-                  <p className="text-slate-800">{selectedMentor.qualification}</p>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-semibold text-slate-500">Bio</label>
-                  <p className="text-slate-800 bg-slate-50 rounded-xl p-4">{selectedMentor.bio}</p>
-                </div>
-
-                {selectedMentor.sessions && selectedMentor.sessions.length > 0 && (
-                  <div>
-                    <label className="text-sm font-semibold text-slate-500 mb-3 block">Recent Sessions</label>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {selectedMentor.sessions.slice(0, 5).map((session) => (
-                        <div key={session.session_id} className="bg-slate-50 rounded-lg p-3 text-sm">
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium">Session #{session.session_id}</span>
-                            <span className="text-slate-500">{session.date}</span>
-                          </div>
-                          <p className="text-slate-600">Student: {session.student.first_name} {session.student.last_name}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+        {/* Delete Confirmation Popup */}
+        {showDeletePopup.show && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl p-6 max-w-sm w-full text-center shadow-xl">
+              <h3 className="text-xl font-semibold text-slate-800 mb-4">Confirm Deletion</h3>
+              <p className="text-slate-600 mb-6">Are you sure you want to delete this mentor?</p>
+              <div className="flex justify-center space-x-4">
+                <button
+                  onClick={() => setShowDeletePopup({ show: false, id: null })}
+                  className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200 text-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-4 py-2 rounded bg-red-500 hover:bg-red-600 text-white"
+                >
+                  Delete
+                </button>
               </div>
             </div>
           </div>
         )}
+
+        {/* Mentor Detail Modal */}
+        {/* Mentor Detail Modal */}
+{selectedMentor && (
+  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-gradient-to-r from-[#03b2ed] to-[#fd59ca] p-6 rounded-t-2xl">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-white">
+            {isEditing ? 'Edit Mentor' : 'Mentor Details'}
+          </h2>
+          <button
+            onClick={() => {
+              setSelectedMentor(null);
+              setIsEditing(false);
+              setEditedMentor(null);
+            }}
+            className="text-white hover:bg-white/20 rounded-full p-2 transition-all duration-300"
+          >
+            <X />
+          </button>
+        </div>
+      </div>
+
+      <div className="p-6 space-y-6">
+        {isEditing ? (
+          <>
+            {/* EDIT MODE FORM */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="text-sm font-semibold text-slate-500">Title</label>
+                <input
+                  type="text"
+                  value={editedMentor.title || ''}
+                  onChange={(e) => setEditedMentor({...editedMentor, title: e.target.value})}
+                  className="w-full border border-slate-300 rounded p-2"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-500">First Name</label>
+                <input
+                  type="text"
+                  value={editedMentor.first_name || ''}
+                  onChange={(e) => setEditedMentor({...editedMentor, first_name: e.target.value})}
+                  className="w-full border border-slate-300 rounded p-2"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-500">Last Name</label>
+                <input
+                  type="text"
+                  value={editedMentor.last_name || ''}
+                  onChange={(e) => setEditedMentor({...editedMentor, last_name: e.target.value})}
+                  className="w-full border border-slate-300 rounded p-2"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-500">Subject</label>
+                <input
+                  type="text"
+                  value={editedMentor.subject || ''}
+                  onChange={(e) => setEditedMentor({...editedMentor, subject: e.target.value})}
+                  className="w-full border border-slate-300 rounded p-2"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-500">Email</label>
+                <input
+                  type="email"
+                  value={editedMentor.email || ''}
+                  onChange={(e) => setEditedMentor({...editedMentor, email: e.target.value})}
+                  className="w-full border border-slate-300 rounded p-2"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-500">Phone</label>
+                <input
+                  type="text"
+                  value={editedMentor.phone_number || ''}
+                  onChange={(e) => setEditedMentor({...editedMentor, phone_number: e.target.value})}
+                  className="w-full border border-slate-300 rounded p-2"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-500">Session Fee</label>
+                <input
+                  type="number"
+                  value={editedMentor.session_fee || ''}
+                  onChange={(e) => setEditedMentor({...editedMentor, session_fee: e.target.value})}
+                  className="w-full border border-slate-300 rounded p-2"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-500">Classroom ID</label>
+                <input
+                  type="text"
+                  value={editedMentor.class_room_id || ''}
+                  onChange={(e) => setEditedMentor({...editedMentor, class_room_id: e.target.value})}
+                  className="w-full border border-slate-300 rounded p-2"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-semibold text-slate-500">Address</label>
+              <textarea
+                value={editedMentor.address || ''}
+                onChange={(e) => setEditedMentor({...editedMentor, address: e.target.value})}
+                className="w-full border border-slate-300 rounded p-2"
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-semibold text-slate-500">Qualification</label>
+              <textarea
+                value={editedMentor.qualification || ''}
+                onChange={(e) => setEditedMentor({...editedMentor, qualification: e.target.value})}
+                className="w-full border border-slate-300 rounded p-2"
+                rows={2}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-semibold text-slate-500">Bio</label>
+              <textarea
+                value={editedMentor.bio || ''}
+                onChange={(e) => setEditedMentor({...editedMentor, bio: e.target.value})}
+                className="w-full border border-slate-300 rounded p-2"
+                rows={4}
+              />
+            </div>
+
+            <div className="flex justify-end space-x-4 mt-6">
+              <button
+                onClick={() => {
+                  setIsEditing(false);
+                  setEditedMentor(null);
+                  // Keep modal open, revert to view mode
+                }}
+                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdate}
+                className="px-4 py-2 rounded bg-[#9414d1] hover:bg-[#7a0eb0] text-white"
+              >
+                Save
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* VIEW MODE CONTENT */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="text-sm font-semibold text-slate-500">Full Name</label>
+                <p className="text-lg text-slate-800">{selectedMentor.title} {selectedMentor.first_name} {selectedMentor.last_name}</p>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-500">Subject</label>
+                <p className="text-slate-800 font-semibold">{selectedMentor.subject}</p>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-500">Email</label>
+                <p className="text-slate-800">{selectedMentor.email}</p>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-500">Phone</label>
+                <p className="text-slate-800">{selectedMentor.phone_number}</p>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-500">Session Fee</label>
+                <p className="text-slate-800 font-bold">${selectedMentor.session_fee}</p>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-500">Classroom ID</label>
+                <p className="text-slate-800">{selectedMentor.class_room_id}</p>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-semibold text-slate-500">Address</label>
+              <p className="text-slate-800">{selectedMentor.address}</p>
+            </div>
+
+            <div>
+              <label className="text-sm font-semibold text-slate-500">Qualification</label>
+              <p className="text-slate-800">{selectedMentor.qualification}</p>
+            </div>
+
+            <div>
+              <label className="text-sm font-semibold text-slate-500">Bio</label>
+              <p className="text-slate-800 bg-slate-50 rounded-xl p-4">{selectedMentor.bio}</p>
+            </div>
+
+            {selectedMentor.sessions && selectedMentor.sessions.length > 0 && (
+              <div>
+                <label className="text-sm font-semibold text-slate-500 mb-3 block">Recent Sessions</label>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {selectedMentor.sessions.slice(0, 5).map((session) => (
+                    <div key={session.session_id} className="bg-slate-50 rounded-lg p-3 text-sm">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">Session #{session.session_id}</span>
+                        <span className="text-slate-500">{session.date}</span>
+                      </div>
+                      <p className="text-slate-600">Student: {session.student.first_name} {session.student.last_name}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  </div>
+)}
+
       </div>
     </div>
   );

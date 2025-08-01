@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { User } from 'lucide-react';
 
 // Simplified Header Component with Logout Navigation
 const Header = ({ userType = 'student', userName = 'SkillMentor' }) => {
@@ -110,6 +111,16 @@ const Header = ({ userType = 'student', userName = 'SkillMentor' }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
               <span className="font-medium">LogOut</span>
+            </button>
+
+            {/* Profile Icon */}
+            <button
+              onClick={() =>
+                navigate(userType === 'mentor' ? '/mentor/profile' : '/student/profile')
+              }
+              className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition duration-200"
+            >
+              <User className="w-5 h-5 text-gray-700" />
             </button>
 
             {/* Mobile Menu Button */}
