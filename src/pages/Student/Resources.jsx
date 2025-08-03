@@ -1,226 +1,367 @@
 import React, { useState } from 'react';
 import { 
-  BookOpen, 
-  Video, 
-  FileText, 
-  Download, 
-  ExternalLink, 
   Search, 
-  Filter, 
+  Play, 
   Clock, 
-  User, 
-  Star, 
-  ArrowRight, 
-  Sparkles,
-  Target,
-  TrendingUp,
+  Eye, 
+  ThumbsUp,
+  BookOpen,
   Code,
-  Briefcase,
-  Users,
-  MessageCircle,
-  Calendar,
-  Award,
-  ChevronDown,
-  Play,
-  BookmarkPlus
+  Gamepad2,
+  Cpu,
+  Database,
+  Smartphone,
+  Globe,
+  Brain,
+  Shield,
+  Palette
 } from 'lucide-react';
+import hero from '../../assets/hero.jpeg';
 
-const Resources = () => {
+const VideoResources = () => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
   const categories = [
-    { id: 'all', name: 'All Resources', icon: <BookOpen className="w-4 h-4" /> },
-    { id: 'guides', name: 'Career Guides', icon: <FileText className="w-4 h-4" /> },
-    { id: 'videos', name: 'Video Tutorials', icon: <Video className="w-4 h-4" /> },
-    { id: 'templates', name: 'Templates', icon: <Download className="w-4 h-4" /> },
-    { id: 'tools', name: 'Tools & Apps', icon: <Code className="w-4 h-4" /> },
-    { id: 'events', name: 'Events & Webinars', icon: <Calendar className="w-4 h-4" /> }
+    { id: 'all', name: 'All Videos', icon: <BookOpen className="w-4 h-4" /> },
+    { id: 'programming', name: 'Programming Languages', icon: <Code className="w-4 h-4" /> },
+    { id: 'quantum', name: 'Quantum Computing', icon: <Cpu className="w-4 h-4" /> },
+    { id: 'gamedev', name: 'Game Development', icon: <Gamepad2 className="w-4 h-4" /> },
+    { id: 'database', name: 'Database Management', icon: <Database className="w-4 h-4" /> },
+    { id: 'mobile', name: 'Mobile Development', icon: <Smartphone className="w-4 h-4" /> },
+    { id: 'web', name: 'Web Development', icon: <Globe className="w-4 h-4" /> },
+    { id: 'ai', name: 'AI & Machine Learning', icon: <Brain className="w-4 h-4" /> },
+    { id: 'cybersecurity', name: 'Cybersecurity', icon: <Shield className="w-4 h-4" /> },
+    { id: 'design', name: 'UI/UX Design', icon: <Palette className="w-4 h-4" /> }
   ];
 
-  const featuredResources = [
-    {
-      id: 1,
-      title: "The Complete Software Engineer Career Roadmap",
-      description: "A comprehensive guide covering everything from junior to senior engineer roles, including salary expectations and skill requirements.",
-      type: "Career Guide",
-      category: "guides",
-      duration: "45 min read",
-      author: "Sarah Chen",
-      rating: 4.9,
-      downloads: 12500,
-      image: null,
-      tags: ["Career Growth", "Software Engineering", "Roadmap"],
-      isPremium: false
-    },
-    {
-      id: 2,
-      title: "System Design Interview Masterclass",
-      description: "Learn how to ace system design interviews with real examples from FAANG companies. Includes practice problems and solutions.",
-      type: "Video Series",
-      category: "videos",
-      duration: "3.5 hours",
-      author: "Marcus Johnson",
-      rating: 4.8,
-      downloads: 8900,
-      image: null,
-      tags: ["System Design", "Interviews", "FAANG"],
-      isPremium: true
-    },
-    {
-      id: 3,
-      title: "Resume Template Pack - Tech Professionals",
-      description: "5 professionally designed resume templates optimized for ATS systems and tech roles. Includes cover letter templates.",
-      type: "Template",
-      category: "templates",
-      duration: "Instant download",
-      author: "Emily Rodriguez",
-      rating: 4.7,
-      downloads: 15200,
-      image: null,
-      tags: ["Resume", "Templates", "ATS"],
-      isPremium: false
+  const videoCollections = {
+    programming: [
+      {
+        id: 1,
+        title: "Python Complete Course - Beginner to Advanced",
+        embedUrl: "https://www.youtube.com/embed/8DvywoWv6fI",
+        duration: "6:30:00",
+        views: "2.1M",
+        likes: "45K",
+        description: "Complete Python programming course covering basics to advanced concepts",
+        thumbnail: "https://img.youtube.com/vi/8DvywoWv6fI/maxresdefault.jpg"
+      },
+      {
+        id: 2,
+        title: "JavaScript Full Course for Beginners",
+        embedUrl: "https://www.youtube.com/embed/PkZNo7MFNFg",
+        duration: "4:20:00",
+        views: "1.8M",
+        likes: "38K",
+        description: "Learn JavaScript from scratch with practical examples and projects",
+        thumbnail: "https://img.youtube.com/vi/PkZNo7MFNFg/maxresdefault.jpg"
+      },
+      {
+        id: 3,
+        title: "Java Programming Complete Tutorial",
+        embedUrl: "https://www.youtube.com/embed/grEKMHGYyns",
+        duration: "12:00:00",
+        views: "1.5M",
+        likes: "32K",
+        description: "Comprehensive Java programming course for beginners",
+        thumbnail: "https://img.youtube.com/vi/grEKMHGYyns/maxresdefault.jpg"
+      }
+    ],
+    quantum: [
+      {
+        id: 4,
+        title: "Quantum Computing Explained with Quantum Physics",
+        embedUrl: "https://www.youtube.com/embed/JhHMJCUmq28",
+        duration: "22:00",
+        views: "850K",
+        likes: "25K",
+        description: "Understanding quantum computing principles and applications",
+        thumbnail: "https://img.youtube.com/vi/JhHMJCUmq28/maxresdefault.jpg"
+      },
+      {
+        id: 5,
+        title: "IBM Qiskit Full Course - Quantum Computing",
+        embedUrl: "https://www.youtube.com/embed/a1NZC5rqQD8",
+        duration: "2:15:00",
+        views: "420K",
+        likes: "12K",
+        description: "Learn quantum programming with IBM Qiskit framework",
+        thumbnail: "https://img.youtube.com/vi/a1NZC5rqQD8/maxresdefault.jpg"
+      }
+    ],
+    gamedev: [
+      {
+        id: 6,
+        title: "Unity Game Development Complete Course",
+        embedUrl: "https://www.youtube.com/embed/gB1F9G0JXOo",
+        duration: "7:40:00",
+        views: "1.2M",
+        likes: "28K",
+        description: "Learn Unity game development from beginner to advanced",
+        thumbnail: "https://img.youtube.com/vi/gB1F9G0JXOo/maxresdefault.jpg"
+      },
+      {
+        id: 7,
+        title: "Unreal Engine 5 Beginner Tutorial",
+        embedUrl: "https://www.youtube.com/embed/ITCWa3oLNAQ",
+        duration: "3:30:00",
+        views: "980K",
+        likes: "22K",
+        description: "Getting started with Unreal Engine 5 for game development",
+        thumbnail: "https://img.youtube.com/vi/ITCWa3oLNAQ/maxresdefault.jpg"
+      }
+    ],
+    database: [
+      {
+        id: 8,
+        title: "SQL Full Course - Complete Database Tutorial",
+        embedUrl: "https://www.youtube.com/embed/HXV3zeQKqGY",
+        duration: "4:00:00",
+        views: "1.1M",
+        likes: "30K",
+        description: "Complete SQL course covering database fundamentals",
+        thumbnail: "https://img.youtube.com/vi/HXV3zeQKqGY/maxresdefault.jpg"
+      },
+      {
+        id: 9,
+        title: "MongoDB Complete Course",
+        embedUrl: "https://www.youtube.com/embed/2QQGWYe7IDU",
+        duration: "2:45:00",
+        views: "650K",
+        likes: "18K",
+        description: "Learn NoSQL database management with MongoDB",
+        thumbnail: "https://img.youtube.com/vi/2QQGWYe7IDU/maxresdefault.jpg"
+      }
+    ],
+    mobile: [
+      {
+        id: 10,
+        title: "React Native Complete Course",
+        embedUrl: "https://www.youtube.com/embed/0-S5a0eXPoc",
+        duration: "3:20:00",
+        views: "890K",
+        likes: "24K",
+        description: "Build mobile apps with React Native framework",
+        thumbnail: "https://img.youtube.com/vi/0-S5a0eXPoc/maxresdefault.jpg"
+      },
+      {
+        id: 11,
+        title: "Flutter App Development Course",
+        embedUrl: "https://www.youtube.com/embed/1ukSR1GRtMU",
+        duration: "4:50:00",
+        views: "750K",
+        likes: "20K",
+        description: "Complete Flutter course for cross-platform development",
+        thumbnail: "https://img.youtube.com/vi/1ukSR1GRtMU/maxresdefault.jpg"
+      }
+    ],
+    web: [
+      {
+        id: 12,
+        title: "Full Stack Web Development Course",
+        embedUrl: "https://www.youtube.com/embed/nu_pCVPKzTk",
+        duration: "8:30:00",
+        views: "1.4M",
+        likes: "35K",
+        description: "Complete full stack development with modern technologies",
+        thumbnail: "https://img.youtube.com/vi/nu_pCVPKzTk/maxresdefault.jpg"
+      },
+      {
+        id: 13,
+        title: "React.js Complete Course",
+        embedUrl: "https://www.youtube.com/embed/bMknfKXIFA8",
+        duration: "5:15:00",
+        views: "1.6M",
+        likes: "40K",
+        description: "Master React.js for modern web development",
+        thumbnail: "https://img.youtube.com/vi/bMknfKXIFA8/maxresdefault.jpg"
+      }
+    ],
+    ai: [
+      {
+        id: 14,
+        title: "Machine Learning Complete Course",
+        embedUrl: "https://www.youtube.com/embed/GwIo3gDZCVQ",
+        duration: "10:30:00",
+        views: "1.3M",
+        likes: "42K",
+        description: "Comprehensive machine learning course with Python",
+        thumbnail: "https://img.youtube.com/vi/GwIo3gDZCVQ/maxresdefault.jpg"
+      },
+      {
+        id: 15,
+        title: "Deep Learning with TensorFlow",
+        embedUrl: "https://www.youtube.com/embed/tPYj3fFJGjk",
+        duration: "6:45:00",
+        views: "920K",
+        likes: "28K",
+        description: "Learn deep learning with TensorFlow framework",
+        thumbnail: "https://img.youtube.com/vi/tPYj3fFJGjk/maxresdefault.jpg"
+      }
+    ],
+    cybersecurity: [
+      {
+        id: 16,
+        title: "Ethical Hacking Complete Course",
+        embedUrl: "https://www.youtube.com/embed/3Kq1MIfTWCE",
+        duration: "15:30:00",
+        views: "2.2M",
+        likes: "55K",
+        description: "Complete ethical hacking and penetration testing course",
+        thumbnail: "https://img.youtube.com/vi/3Kq1MIfTWCE/maxresdefault.jpg"
+      },
+      {
+        id: 17,
+        title: "Network Security Fundamentals",
+        embedUrl: "https://www.youtube.com/embed/kBzbKUirOFk",
+        duration: "3:40:00",
+        views: "680K",
+        likes: "19K",
+        description: "Understanding network security principles and practices",
+        thumbnail: "https://img.youtube.com/vi/kBzbKUirOFk/maxresdefault.jpg"
+      }
+    ],
+    design: [
+      {
+        id: 18,
+        title: "UI/UX Design Complete Course",
+        embedUrl: "https://www.youtube.com/embed/c9Wg6Cb_YlU",
+        duration: "5:20:00",
+        views: "1.1M",
+        likes: "31K",
+        description: "Master UI/UX design principles and tools",
+        thumbnail: "https://img.youtube.com/vi/c9Wg6Cb_YlU/maxresdefault.jpg"
+      },
+      {
+        id: 19,
+        title: "Figma Complete Tutorial",
+        embedUrl: "https://www.youtube.com/embed/FTlczfEyHnc",
+        duration: "2:30:00",
+        views: "850K",
+        likes: "26K",
+        description: "Complete Figma tutorial for design professionals",
+        thumbnail: "https://img.youtube.com/vi/FTlczfEyHnc/maxresdefault.jpg"
+      }
+    ]
+  };
+
+  const getAllVideos = () => {
+    return Object.values(videoCollections).flat();
+  };
+
+  const filteredVideos = (() => {
+    let videos = activeCategory === 'all' ? getAllVideos() : videoCollections[activeCategory] || [];
+    
+    if (searchTerm) {
+      videos = videos.filter(video => 
+        video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        video.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
-  ];
+    
+    return videos;
+  })();
 
-  const resourceLibrary = [
-    {
-      id: 4,
-      title: "JavaScript Interview Prep Kit",
-      description: "100+ JavaScript interview questions with detailed explanations and code examples.",
-      type: "Study Guide",
-      category: "guides",
-      duration: "2 hours",
-      author: "Alex Kim",
-      rating: 4.6,
-      downloads: 6700,
-      tags: ["JavaScript", "Interviews", "Coding"],
-      isPremium: false
-    },
-    {
-      id: 5,
-      title: "Salary Negotiation Workshop",
-      description: "Learn proven strategies to negotiate your salary and benefits package effectively.",
-      type: "Workshop",
-      category: "videos",
-      duration: "90 min",
-      author: "Dr. Lisa Park",
-      rating: 4.9,
-      downloads: 4300,
-      tags: ["Salary", "Negotiation", "Career"],
-      isPremium: true
-    },
-    {
-      id: 6,
-      title: "Project Portfolio Builder",
-      description: "Interactive tool to create stunning project portfolios that showcase your skills effectively.",
-      type: "Tool",
-      category: "tools",
-      duration: "Self-paced",
-      author: "SkillMentor Team",
-      rating: 4.5,
-      downloads: 3200,
-      tags: ["Portfolio", "Projects", "Showcase"],
-      isPremium: false
-    },
-    {
-      id: 7,
-      title: "Tech Industry Trends 2025",
-      description: "Comprehensive report on emerging technologies and market demands for the coming year.",
-      type: "Report",
-      category: "guides",
-      duration: "30 min read",
-      author: "Industry Research Team",
-      rating: 4.4,
-      downloads: 2800,
-      tags: ["Trends", "Technology", "2025"],
-      isPremium: true
-    },
-    {
-      id: 8,
-      title: "Networking Event: AI & Machine Learning",
-      description: "Join industry experts for discussions on the latest AI/ML trends and career opportunities.",
-      type: "Live Event",
-      category: "events",
-      duration: "2 hours",
-      author: "SkillMentor Events",
-      rating: 4.8,
-      downloads: 0,
-      tags: ["AI", "ML", "Networking"],
-      isPremium: false,
-      date: "Aug 15, 2025"
-    }
-  ];
-
-  const learningPaths = [
-    {
-      title: "Frontend Developer Path",
-      description: "Complete learning path from HTML/CSS basics to advanced React development",
-      resources: 24,
-      duration: "3-6 months",
-      level: "Beginner to Advanced",
-      color: "from-blue-500 to-cyan-500"
-    },
-    {
-      title: "Data Scientist Path",
-      description: "Master data analysis, machine learning, and statistical modeling",
-      resources: 18,
-      duration: "4-8 months", 
-      level: "Intermediate",
-      color: "from-purple-500 to-pink-500"
-    },
-    {
-      title: "DevOps Engineer Path",
-      description: "Learn cloud platforms, containerization, and infrastructure automation",
-      resources: 20,
-      duration: "3-5 months",
-      level: "Intermediate to Advanced",
-      color: "from-green-500 to-emerald-500"
-    }
-  ];
-
-  const filteredResources = [...featuredResources, ...resourceLibrary].filter(resource => {
-    const matchesCategory = activeCategory === 'all' || resource.category === activeCategory;
-    const matchesSearch = resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         resource.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         resource.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    return matchesCategory && matchesSearch;
-  });
+  const VideoCard = ({ video }) => (
+    <div className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group">
+      <div className="relative">
+        <div className="aspect-video bg-gray-900 relative overflow-hidden">
+          <iframe
+            src={video.embedUrl}
+            title={video.title}
+            className="w-full h-full"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+        <div className="absolute top-3 right-3 bg-black/70 text-white text-xs px-2 py-1 rounded flex items-center space-x-1">
+          <Clock className="w-3 h-3" />
+          <span>{video.duration}</span>
+        </div>
+      </div>
+      
+      <div className="p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-[#450053] transition-colors">
+          {video.title}
+        </h3>
+        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{video.description}</p>
+        
+        <div className="flex items-center justify-between text-sm text-gray-500">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-1">
+              <Eye className="w-4 h-4" />
+              <span>{video.views}</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <ThumbsUp className="w-4 h-4" />
+              <span>{video.likes}</span>
+            </div>
+          </div>
+          <button className="bg-[#450053] hover:bg-[#350041] text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
+            <Play className="w-4 h-4" />
+            <span>Watch</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+    <div className="min-h-screen bg-gray-50">
+      <style jsx>{`
+        @keyframes fade-in-up {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slide-in-left {
+          from { opacity: 0; transform: translateX(-50px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slide-in-right {
+          from { opacity: 0; transform: translateX(50px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fade-in-up { animation: fade-in-up 0.8s ease-out forwards; }
+        .animate-slide-in-left { animation: slide-in-left 0.8s ease-out forwards; }
+        .animate-slide-in-right { animation: slide-in-right 0.8s ease-out forwards; }
+        .animation-delay-300 { animation-delay: 0.3s; }
+        .animation-delay-600 { animation-delay: 0.6s; }
+        .animation-delay-900 { animation-delay: 0.9s; }
+      `}</style>
+
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#280120] via-[#450063] to-[#9414d1]">
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#280120] via-[#450053] to-[#9414d1]">
+        <div className="absolute inset-0">
+          <img src={hero} alt="Hero Background" className="w-full h-full object-cover opacity-40" />
+          <div className="absolute inset-0 bg-black/60"></div>
+        </div>
+        
         <div className="absolute inset-0">
           <div className="absolute top-10 left-10 w-72 h-72 bg-[#03b2ed]/20 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-10 right-10 w-96 h-96 bg-[#fd59ca]/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
         </div>
-
+        
         <div className="relative max-w-7xl mx-auto px-6 py-24">
           <div className="text-center">
-            <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-lg border border-white/30 rounded-full px-6 py-3 mb-8">
-              <Sparkles className="w-5 h-5 text-[#fd59ca]" />
-              <span className="text-white font-semibold">Learning Resources</span>
-            </div>
-
-            <h1 className="text-6xl font-black text-white mb-6 leading-tight">
-              Accelerate Your
-              <span className="block bg-gradient-to-r from-[#03b2ed] via-[#fd59ca] to-[#03b2ed] bg-clip-text text-transparent">
-                Career Growth
+            <h1 className="text-6xl font-black text-white mb-6 leading-tight animate-fade-in-up">
+              <span className="inline-block animate-slide-in-left">Video Learning</span>
+              <span className="block bg-gradient-to-r from-[#03b2ed] via-[#fd59ca] to-[#03b2ed] bg-clip-text text-transparent animate-slide-in-right animation-delay-300">
+                Resources
               </span>
             </h1>
-            
-            <p className="text-xl text-white/80 font-medium max-w-3xl mx-auto leading-relaxed mb-8">
-              Access curated learning materials, templates, tools, and expert insights to fast-track your professional development journey.
+            <p className="text-xl text-white/90 font-medium max-w-3xl mx-auto mb-12 leading-relaxed animate-fade-in-up animation-delay-600">
+              Master new technologies with our curated collection of comprehensive video tutorials from expert instructors.
             </p>
-
+            
             {/* Search Bar */}
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-2xl mx-auto animate-fade-in-up animation-delay-900">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/60 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search resources, guides, templates..."
+                  placeholder="Search video tutorials..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full bg-white/20 backdrop-blur-lg border border-white/30 rounded-xl py-4 pl-12 pr-4 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#03b2ed] focus:border-transparent"
@@ -233,244 +374,53 @@ const Resources = () => {
 
       {/* Categories Filter */}
       <div className="max-w-7xl mx-auto px-6 -mt-8 relative z-10">
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
-          <div className="flex flex-wrap gap-3">
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+          <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-3">
             {categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => setActiveCategory(category.id)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                className={`flex flex-col items-center space-y-2 p-3 rounded-lg font-medium transition-all duration-300 ${
                   activeCategory === category.id
-                    ? 'bg-gradient-to-r from-[#9414d1] to-[#03b2ed] text-white shadow-lg'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-[#450053] text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 {category.icon}
-                <span>{category.name}</span>
+                <span className="text-xs text-center">{category.name}</span>
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Learning Paths */}
-      <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-black text-[#280120] mb-4">Structured Learning Paths</h2>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Follow curated learning journeys designed to take you from beginner to expert in your chosen field.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-8">
-          {learningPaths.map((path, index) => (
-            <div key={index} className="bg-white rounded-2xl p-8 shadow-lg border border-slate-200 hover:shadow-xl transition-all duration-300">
-              <div className={`w-16 h-16 bg-gradient-to-r ${path.color} rounded-2xl flex items-center justify-center text-white mb-6`}>
-                <Target className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-3">{path.title}</h3>
-              <p className="text-slate-600 mb-6">{path.description}</p>
-              <div className="space-y-2 mb-6">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Resources:</span>
-                  <span className="font-medium text-slate-700">{path.resources}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Duration:</span>
-                  <span className="font-medium text-slate-700">{path.duration}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Level:</span>
-                  <span className="font-medium text-slate-700">{path.level}</span>
-                </div>
-              </div>
-              <button className="w-full bg-gradient-to-r from-[#03b2ed] to-[#fd59ca] hover:from-[#fd59ca] hover:to-[#03b2ed] text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 group">
-                <div className="flex items-center justify-center space-x-2">
-                  <span>Start Learning</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-                </div>
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Featured Resources */}
+      {/* Video Content */}
       <div className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-black text-[#280120] mb-4">Featured Resources</h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Hand-picked premium content from industry experts to supercharge your learning.
-            </p>
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold text-[#450053]">
+              {activeCategory === 'all' ? 'All Video Tutorials' : categories.find(c => c.id === activeCategory)?.name}
+            </h2>
+            <span className="text-gray-500">{filteredVideos.length} videos</span>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
-            {featuredResources.map((resource) => (
-              <div key={resource.id} className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300 group">
-                <div className="h-48 bg-gradient-to-br from-[#280120] via-[#450063] to-[#9414d1] flex items-center justify-center relative">
-                  {resource.isPremium && (
-                    <div className="absolute top-4 right-4 bg-[#fd59ca] text-white text-xs font-bold px-3 py-1 rounded-full">
-                      PREMIUM
-                    </div>
-                  )}
-                  <div className="text-center text-white">
-                    {resource.category === 'videos' ? <Play className="w-12 h-12 mx-auto mb-2" /> :
-                     resource.category === 'templates' ? <Download className="w-12 h-12 mx-auto mb-2" /> :
-                     <FileText className="w-12 h-12 mx-auto mb-2" />}
-                    <p className="font-medium">{resource.type}</p>
-                  </div>
-                </div>
-                
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold text-slate-900 mb-3 group-hover:text-[#9414d1] transition-colors duration-300">
-                    {resource.title}
-                  </h3>
-                  <p className="text-slate-600 mb-4 line-clamp-3">{resource.description}</p>
-                  
-                  <div className="flex items-center space-x-4 text-sm text-slate-500 mb-4">
-                    <div className="flex items-center space-x-1">
-                      <Clock className="w-4 h-4" />
-                      <span>{resource.duration}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <User className="w-4 h-4" />
-                      <span>{resource.author}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span>{resource.rating}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    {resource.tags.map((tag, tagIndex) => (
-                      <span key={tagIndex} className="bg-slate-100 text-slate-600 text-xs font-medium px-3 py-1 rounded-full">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-slate-500">
-                      {resource.downloads > 0 ? `${resource.downloads.toLocaleString()} downloads` : 'Upcoming Event'}
-                    </div>
-                    <button className="flex items-center space-x-2 bg-gradient-to-r from-[#03b2ed] to-[#fd59ca] hover:from-[#fd59ca] hover:to-[#03b2ed] text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 group">
-                      {resource.category === 'events' ? (
-                        <>
-                          <Calendar className="w-4 h-4" />
-                          <span>Register</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>Access</span>
-                          <ExternalLink className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Resource Library */}
-      <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="flex items-center justify-between mb-12">
-          <div>
-            <h2 className="text-4xl font-black text-[#280120] mb-4">Resource Library</h2>
-            <p className="text-lg text-slate-600">
-              Explore our complete collection of learning materials and tools.
-            </p>
-          </div>
-          <div className="flex items-center space-x-2 text-slate-600">
-            <span className="font-medium">{filteredResources.length} resources found</span>
-          </div>
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-6">
-          {filteredResources.map((resource) => (
-            <div key={resource.id} className="bg-white rounded-xl p-6 shadow-lg border border-slate-200 hover:shadow-xl transition-all duration-300 group">
-              <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#9414d1] to-[#03b2ed] rounded-xl flex items-center justify-center text-white flex-shrink-0">
-                  {resource.category === 'videos' ? <Play className="w-6 h-6" /> :
-                   resource.category === 'templates' ? <Download className="w-6 h-6" /> :
-                   resource.category === 'tools' ? <Code className="w-6 h-6" /> :
-                   resource.category === 'events' ? <Calendar className="w-6 h-6" /> :
-                   <FileText className="w-6 h-6" />}
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <h3 className="text-lg font-semibold text-slate-900 group-hover:text-[#9414d1] transition-colors duration-300 truncate">
-                      {resource.title}
-                    </h3>
-                    {resource.isPremium && (
-                      <span className="bg-[#fd59ca] text-white text-xs font-bold px-2 py-1 rounded-full flex-shrink-0">
-                        PRO
-                      </span>
-                    )}
-                  </div>
-                  
-                  <p className="text-slate-600 mb-3 line-clamp-2">{resource.description}</p>
-                  
-                  <div className="flex items-center space-x-4 text-sm text-slate-500 mb-3">
-                    <span className="bg-slate-100 px-2 py-1 rounded text-xs font-medium">{resource.type}</span>
-                    <div className="flex items-center space-x-1">
-                      <Clock className="w-3 h-3" />
-                      <span>{resource.duration}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                      <span>{resource.rating}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-wrap gap-1">
-                      {resource.tags.slice(0, 2).map((tag, tagIndex) => (
-                        <span key={tagIndex} className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded">
-                          {tag}
-                        </span>
-                      ))}
-                      {resource.tags.length > 2 && (
-                        <span className="text-slate-400 text-xs">+{resource.tags.length - 2}</span>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <button className="p-2 text-slate-400 hover:text-[#9414d1] transition-colors duration-300">
-                        <BookmarkPlus className="w-4 h-4" />
-                      </button>
-                      <button className="bg-gradient-to-r from-[#03b2ed] to-[#fd59ca] hover:from-[#fd59ca] hover:to-[#03b2ed] text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 text-sm">
-                        {resource.category === 'events' ? 'Register' : 'Access'}
-                      </button>
-                    </div>
-                  </div>
-
-                  {resource.date && (
-                    <div className="mt-3 text-sm text-[#9414d1] font-medium">
-                      📅 {resource.date}
-                    </div>
-                  )}
-                </div>
-              </div>
+          {filteredVideos.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredVideos.map((video) => (
+                <VideoCard key={video.id} video={video} />
+              ))}
             </div>
-          ))}
+          ) : (
+            <div className="text-center py-16">
+              <Search className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">No videos found</h3>
+              <p className="text-gray-500">Try adjusting your search or selecting a different category</p>
+            </div>
+          )}
         </div>
-
-        {filteredResources.length === 0 && (
-          <div className="text-center py-16">
-            <Search className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-slate-600 mb-2">No resources found</h3>
-            <p className="text-slate-500">Try adjusting your search or filter criteria</p>
-          </div>
-        )}
       </div>
     </div>
   );
 };
 
-export default Resources;
+export default VideoResources;

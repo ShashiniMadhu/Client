@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Search, Clock, User, GraduationCap, BookOpen, Eye, CheckCircle, XCircle, AlertCircle, Link, ExternalLink, Check, X, FileText, Image, Download } from 'lucide-react';
+import { Calendar, Search, Clock, User, GraduationCap, BookOpen, Eye, CheckCircle, XCircle, AlertCircle, Link, ExternalLink, Check, X, FileText, Image, Download, Loader, Star, DollarSign, Briefcase, Mail } from 'lucide-react';
 
 const AllSessions = () => {
   const [sessions, setSessions] = useState([]);
@@ -10,6 +10,7 @@ const AllSessions = () => {
   const [actionLoading, setActionLoading] = useState({});
   const [sessionLinks, setSessionLinks] = useState({});
   const [previewSlip, setPreviewSlip] = useState(null);
+  const [viewMode, setViewMode] = useState('grid');
 
   useEffect(() => {
     fetchSessions();
@@ -71,11 +72,11 @@ const AllSessions = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'accepted': return 'bg-green-100 text-green-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'payment_uploaded': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'accepted': return 'bg-green-100 text-green-800 border-green-200';
+      case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
+      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'payment_uploaded': return 'bg-blue-100 text-blue-800 border-blue-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
@@ -87,6 +88,27 @@ const AllSessions = () => {
       case 'payment_uploaded': return <FileText className="w-4 h-4" />;
       default: return <AlertCircle className="w-4 h-4" />;
     }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  const formatTime = (timeString) => {
+    const [hours, minutes] = timeString.split(':');
+    const date = new Date();
+    date.setHours(parseInt(hours), parseInt(minutes));
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
   };
 
   const getFileType = (filename) => {
@@ -102,13 +124,10 @@ const AllSessions = () => {
 
   const getFullFileUrl = (slipLink) => {
     if (!slipLink) return null;
-    // If it's already a full URL, return as is
     if (slipLink.startsWith('http')) return slipLink;
-    // If it's a relative path, prepend the base URL with uploads path
     if (slipLink.startsWith('/uploads')) {
       return `http://localhost:8080${slipLink}`;
     }
-    // If it's just a filename, prepend the full uploads path
     return `http://localhost:8080/uploads/${slipLink}`;
   };
 
@@ -119,7 +138,7 @@ const AllSessions = () => {
     const fileType = getFileType(slipLink);
 
     return (
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 mb-4">
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 mb-4 border border-blue-100">
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-medium text-slate-600 flex items-center">
             <FileText className="w-4 h-4 mr-2" />
@@ -128,7 +147,7 @@ const AllSessions = () => {
           <div className="flex space-x-2">
             <button
               onClick={() => setPreviewSlip({ url: fullUrl, type: fileType, sessionId })}
-              className="text-[#03b2ed] hover:text-[#fd59ca] transition-colors flex items-center space-x-1 text-sm"
+              className="text-[#450063] hover:text-[#280120] transition-colors flex items-center space-x-1 text-sm font-medium"
             >
               <Eye className="w-3 h-3" />
               <span>Preview</span>
@@ -137,7 +156,7 @@ const AllSessions = () => {
               href={fullUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#03b2ed] hover:text-[#fd59ca] transition-colors flex items-center space-x-1 text-sm"
+              className="text-[#450063] hover:text-[#280120] transition-colors flex items-center space-x-1 text-sm font-medium"
             >
               <Download className="w-3 h-3" />
               <span>Download</span>
@@ -185,7 +204,7 @@ const AllSessions = () => {
     return (
       <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-          <div className="bg-gradient-to-r from-[#03b2ed] to-[#fd59ca] p-4">
+          <div className="bg-gradient-to-r from-[#280120] via-[#450063] to-[#9414d1] p-4">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold text-white">
                 Payment Slip Preview - Session #{previewSlip.sessionId}
@@ -216,7 +235,7 @@ const AllSessions = () => {
                     href={previewSlip.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-[#03b2ed] text-white px-4 py-2 rounded-lg hover:bg-[#fd59ca] transition-colors flex items-center space-x-2"
+                    className="bg-[#450063] text-white px-4 py-2 rounded-lg hover:bg-[#280120] transition-colors flex items-center space-x-2"
                   >
                     <ExternalLink className="w-4 h-4" />
                     <span>Open in New Tab</span>
@@ -243,7 +262,7 @@ const AllSessions = () => {
                     href={previewSlip.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-[#03b2ed] text-white px-4 py-2 rounded-lg hover:bg-[#fd59ca] transition-colors flex items-center space-x-2"
+                    className="bg-[#450063] text-white px-4 py-2 rounded-lg hover:bg-[#280120] transition-colors flex items-center space-x-2"
                   >
                     <ExternalLink className="w-4 h-4" />
                     <span>Open in New Tab</span>
@@ -267,7 +286,7 @@ const AllSessions = () => {
                   href={previewSlip.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-[#03b2ed] text-white px-6 py-3 rounded-lg hover:bg-[#fd59ca] transition-colors inline-flex items-center space-x-2"
+                  className="bg-[#450063] text-white px-6 py-3 rounded-lg hover:bg-[#280120] transition-colors inline-flex items-center space-x-2"
                 >
                   <ExternalLink className="w-4 h-4" />
                   <span>Open File</span>
@@ -296,485 +315,583 @@ const AllSessions = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9414d1]"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="w-12 h-12 text-[#450063] animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Loading sessions...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-[#280120] via-[#450063] to-[#9414d1] rounded-2xl shadow-2xl p-8 mb-8">
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-[#03b2ed] to-[#fd59ca] rounded-2xl flex items-center justify-center">
-              <Calendar className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-black text-white">Session Management</h1>
-              <p className="text-white/80">Approve and manage all mentoring sessions</p>
-            </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Main Content */}
+      <div className="bg-white py-16">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold text-[#450063] mb-6">
+              All Sessions Overview
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Manage and track all mentoring sessions across the platform with comprehensive admin controls
+            </p>
           </div>
-        </div>
 
-        {/* Filters */}
-        <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl p-6 mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search sessions..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#9414d1] focus:border-transparent outline-none"
-              />
-            </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#9414d1] focus:border-transparent outline-none"
-            >
-              <option value="all">All Status</option>
-              <option value="accepted">Accepted</option>
-              <option value="rejected">Rejected</option>
-              <option value="pending">Pending</option>
-              <option value="payment_uploaded">Payment Uploaded</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Sessions Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {filteredSessions.map((session) => (
-            <div key={session.session_id} className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 overflow-hidden hover:shadow-2xl transition-all duration-300">
-              <div className="bg-gradient-to-r from-[#03b2ed] to-[#fd59ca] p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold text-white">
-                      Session #{session.session_id}
-                    </h3>
-                    <p className="text-white/80 text-sm">{session.topic || 'General Session'}</p>
-                  </div>
-                  <div className={`px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1 ${getStatusColor(session.status)} bg-white/90`}>
-                    {getStatusIcon(session.status)}
-                    <span className="capitalize">{session.status === 'payment_uploaded' ? 'Payment Uploaded' : session.status || 'Pending'}</span>
-                  </div>
+          {/* Search and Filter Bar */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+            <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+              {/* Search Bar */}
+              <div className="flex-1 max-w-md">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="Search sessions, mentors, students..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#450063] focus:border-transparent"
+                  />
                 </div>
               </div>
 
-              <div className="p-6">
-                <div className="space-y-4 mb-6">
-                  {/* Classroom, Mentor, Student info */}
-                  <div className="flex items-center space-x-3 text-slate-600">
-                    <BookOpen className="w-4 h-4 text-[#9414d1]" />
-                    <span className="text-sm font-semibold">{session.class_room?.title}</span>
-                  </div>
+              {/* Filters */}
+              <div className="flex gap-4 items-center">
+                {/* Status Filter */}
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#450063] focus:border-transparent"
+                >
+                  <option value="all">All Status</option>
+                  <option value="accepted">Accepted</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="pending">Pending</option>
+                  <option value="payment_uploaded">Payment Uploaded</option>
+                </select>
+
+                {/* View Mode Toggle */}
+                <div className="flex bg-gray-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`p-2 rounded-md transition-all duration-300 ${
+                      viewMode === 'grid' 
+                        ? 'bg-white shadow-sm text-[#450063]' 
+                        : 'text-gray-400 hover:text-gray-600'
+                    }`}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`p-2 rounded-md transition-all duration-300 ${
+                      viewMode === 'list' 
+                        ? 'bg-white shadow-sm text-[#450063]' 
+                        : 'text-gray-400 hover:text-gray-600'
+                    }`}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Results Counter */}
+            <div className="mt-4 text-sm text-gray-500">
+              Showing {filteredSessions.length} of {sessions.length} sessions
+            </div>
+          </div>
+
+          {/* Sessions Grid/List */}
+          {filteredSessions.length > 0 && (
+            <div className={`${
+              viewMode === 'grid' 
+                ? 'grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8' 
+                : 'space-y-6'
+            }`}>
+              {filteredSessions.map((session) => (
+                <div key={session.session_id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 group">
+                  {/* Status Bar */}
+                  <div className="h-1 bg-gradient-to-r from-[#450063] to-[#9414d1]"></div>
                   
-                  <div className="flex items-center space-x-3 text-slate-600">
-                    <User className="w-4 h-4 text-[#03b2ed]" />
-                    <span className="text-sm font-semibold">
-                      {session.mentor?.title} {session.mentor?.first_name} {session.mentor?.last_name}
-                    </span>
+                  {/* Header */}
+                  <div className="p-6">
+                    {/* Status Badge and Session Icon */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(session.status)}`}>
+                        {getStatusIcon(session.status)}
+                        <span className="ml-1 capitalize">{session.status === 'payment_uploaded' ? 'Payment Uploaded' : session.status || 'Pending'}</span>
+                      </div>
+                      <div className="w-12 h-12 bg-[#450063] rounded-lg flex items-center justify-center">
+                        <BookOpen className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+
+                    {/* Session Title */}
+                    <h3 className="text-xl font-bold text-gray-900 mb-4 leading-tight">
+                      Session #{session.session_id}
+                    </h3>
+                    <p className="text-gray-600 mb-4">{session.topic || 'General Session'}</p>
+
+                    {/* Classroom, Mentor, Student info */}
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <BookOpen className="w-4 h-4 text-[#450063]" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{session.class_room?.title}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <User className="w-4 h-4 text-[#450063]" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {session.mentor?.title} {session.mentor?.first_name} {session.mentor?.last_name}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <GraduationCap className="w-4 h-4 text-[#450063]" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {session.student?.first_name} {session.student?.last_name}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Session Details */}
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="bg-gray-50 rounded-lg p-4 border">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Calendar className="w-4 h-4 text-[#450063]" />
+                          <span className="text-xs font-medium text-gray-600">Date</span>
+                        </div>
+                        <p className="text-sm font-bold text-gray-900">{formatDate(session.date)}</p>
+                      </div>
+
+                      <div className="bg-gray-50 rounded-lg p-4 border">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Clock className="w-4 h-4 text-[#450063]" />
+                          <span className="text-xs font-medium text-gray-600">Time</span>
+                        </div>
+                        <p className="text-sm font-bold text-gray-900">{formatTime(session.start_time)}</p>
+                      </div>
+                    </div>
+
+                    {/* Session Link */}
+                    {session.session_link && (
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-3 mb-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-slate-600">Session Link:</span>
+                          <a
+                            href={session.session_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#450063] hover:text-[#280120] transition-colors flex items-center space-x-1 text-sm font-medium"
+                          >
+                            <span>Join</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Payment Slip Preview */}
+                    {session.slip_link && (
+                      <PaymentSlipPreview slipLink={session.slip_link} sessionId={session.session_id} />
+                    )}
+
+                    {/* Admin Controls */}
+                    <div className="space-y-4 border-t border-gray-200 pt-4">
+                      {session.status === 'accepted' ? (
+                        <div className="text-center">
+                          <div className="bg-green-50 rounded-lg p-3 mb-3">
+                            <p className="text-green-700 font-medium">✓ Session Accepted</p>
+                            {session.session_link && (
+                              <a href={session.session_link} target="_blank" rel="noopener noreferrer" className="text-green-600 text-sm hover:underline">
+                                View Session Link
+                              </a>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => updateSessionStatus(session.session_id, 'reject')}
+                            disabled={actionLoading[session.session_id] === 'reject'}
+                            className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2 mx-auto"
+                          >
+                            {actionLoading[session.session_id] === 'reject' ? (
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                              <X className="w-4 h-4" />
+                            )}
+                            <span>Reject Session</span>
+                          </button>
+                        </div>
+                      ) : session.status === 'rejected' ? (
+                        <div className="text-center">
+                          <div className="bg-red-50 rounded-lg p-3 mb-3">
+                            <p className="text-red-700 font-medium">✗ Session Rejected</p>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="flex items-center space-x-3">
+                              <Link className="w-5 h-5 text-slate-600" />
+                              <input
+                                type="url"
+                                placeholder="Enter session link to accept"
+                                value={sessionLinks[session.session_id] || ''}
+                                onChange={(e) => setSessionLinks(prev => ({ ...prev, [session.session_id]: e.target.value }))}
+                                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#450063] focus:border-transparent outline-none"
+                              />
+                            </div>
+                            <button
+                              onClick={() => handleAcceptWithLink(session.session_id)}
+                              disabled={actionLoading[session.session_id] === 'accept'}
+                              className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2 mx-auto"
+                            >
+                              {actionLoading[session.session_id] === 'accept' ? (
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              ) : (
+                                <Check className="w-4 h-4" />
+                              )}
+                              <span>Accept Session</span>
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className={`${session.status === 'payment_uploaded' ? 'bg-blue-50' : 'bg-yellow-50'} rounded-lg p-3 mb-3 text-center`}>
+                            <p className={`${session.status === 'payment_uploaded' ? 'text-blue-700' : 'text-yellow-700'} font-medium`}>
+                              {session.status === 'payment_uploaded' ? '💳 Payment Uploaded - Ready for Approval' : '⏳ Pending Approval'}
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-3 mb-3">
+                            <Link className="w-5 h-5 text-slate-600" />
+                            <input
+                              type="url"
+                              placeholder="Enter session link"
+                              value={sessionLinks[session.session_id] || ''}
+                              onChange={(e) => setSessionLinks(prev => ({ ...prev, [session.session_id]: e.target.value }))}
+                              className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#450063] focus:border-transparent outline-none"
+                            />
+                          </div>
+                          
+                          <div className="flex space-x-3">
+                            <button
+                              onClick={() => handleAcceptWithLink(session.session_id)}
+                              disabled={actionLoading[session.session_id] === 'accept'}
+                              className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                            >
+                              {actionLoading[session.session_id] === 'accept' ? (
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              ) : (
+                                <Check className="w-4 h-4" />
+                              )}
+                              <span>Accept</span>
+                            </button>
+                            
+                            <button
+                              onClick={() => updateSessionStatus(session.session_id, 'reject')}
+                              disabled={actionLoading[session.session_id] === 'reject'}
+                              className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                            >
+                              {actionLoading[session.session_id] === 'reject' ? (
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              ) : (
+                                <X className="w-4 h-4" />
+                              )}
+                              <span>Reject</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* View Details Button */}
+                    <div className="mt-4">
+                      <button 
+                        onClick={() => setSelectedSession(session)}
+                        className="w-full bg-gradient-to-r from-[#450063] to-[#9414d1] hover:from-[#350051] hover:to-[#7c3aed] text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span>View Details</span>
+                      </button>
+                    </div>
                   </div>
-                  
-                  <div className="flex items-center space-x-3 text-slate-600">
-                    <GraduationCap className="w-4 h-4 text-[#fd59ca]" />
-                    <span className="text-sm font-semibold">
-                      {session.student?.first_name} {session.student?.last_name}
-                    </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* No Sessions State */}
+          {filteredSessions.length === 0 && sessions.length === 0 && (
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
+                <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold text-gray-800 mb-4">No Sessions Found</h3>
+                <p className="text-gray-600 mb-6">
+                  There are currently no sessions in the system. Sessions will appear here once they are created.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* No Search Results */}
+          {filteredSessions.length === 0 && sessions.length > 0 && (
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
+                <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold text-gray-800 mb-4">No Sessions Found</h3>
+                <p className="text-gray-600 mb-6">
+                  No sessions match your current search criteria. Try adjusting your filters or search terms.
+                </p>
+                <button 
+                  onClick={() => {
+                    setSearchTerm('');
+                    setStatusFilter('all');
+                  }}
+                  className="bg-[#450063] hover:bg-[#350051] text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Session Detail Modal */}
+          {selectedSession && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="bg-gradient-to-r from-[#280120] via-[#450063] to-[#9414d1] p-6 rounded-t-2xl">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold text-white">Session Details</h2>
+                    <button
+                      onClick={() => setSelectedSession(null)}
+                      className="text-white hover:bg-white/20 rounded-full p-2 transition-all duration-300"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="p-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="text-sm font-semibold text-slate-500">Session ID</label>
+                      <p className="text-lg text-slate-800">#{selectedSession.session_id}</p>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-semibold text-slate-500">Status</label>
+                      <div className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(selectedSession.status)}`}>
+                        {getStatusIcon(selectedSession.status)}
+                        <span className="capitalize ml-1">{selectedSession.status === 'payment_uploaded' ? 'Payment Uploaded' : selectedSession.status || 'Pending'}</span>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-semibold text-slate-500">Date</label>
+                      <p className="text-slate-800">{formatDate(selectedSession.date)}</p>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-semibold text-slate-500">Start Time</label>
+                      <p className="text-slate-800">{formatTime(selectedSession.start_time)}</p>
+                    </div>
                   </div>
 
-                  <div className="bg-slate-50 rounded-xl p-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-600 flex items-center">
-                        <Calendar className="w-4 h-4 mr-2" />
-                        Date:
-                      </span>
-                      <span className="font-semibold text-slate-700">{session.date}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-600 flex items-center">
-                        <Clock className="w-4 h-4 mr-2" />
-                        Time:
-                      </span>
-                      <span className="font-semibold text-slate-700">{session.start_time}</span>
+                  <div>
+                    <label className="text-sm font-semibold text-slate-500">Topic</label>
+                    <p className="text-slate-800">{selectedSession.topic || 'General Session'}</p>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-semibold text-slate-500">Classroom</label>
+                    <div className="bg-slate-50 rounded-xl p-4">
+                      <p className="font-semibold text-slate-800">{selectedSession.class_room?.title}</p>
+                      <p className="text-sm text-slate-600">
+                        {selectedSession.class_room?.enrolled_student_count} students enrolled
+                      </p>
                     </div>
                   </div>
 
-                  {session.session_link && (
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-slate-600">Session Link:</span>
+                  <div>
+                    <label className="text-sm font-semibold text-slate-500">Mentor</label>
+                    <div className="bg-slate-50 rounded-xl p-4">
+                      <p className="font-semibold text-slate-800">
+                        {selectedSession.mentor?.title} {selectedSession.mentor?.first_name} {selectedSession.mentor?.last_name}
+                      </p>
+                      <p className="text-sm text-slate-600">{selectedSession.mentor?.email}</p>
+                      <p className="text-sm text-slate-600">Subject: {selectedSession.mentor?.subject}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-semibold text-slate-500">Student</label>
+                    <div className="bg-slate-50 rounded-xl p-4">
+                      <p className="font-semibold text-slate-800">
+                        {selectedSession.student?.first_name} {selectedSession.student?.last_name}
+                      </p>
+                      <p className="text-sm text-slate-600">{selectedSession.student?.email}</p>
+                      <p className="text-sm text-slate-600">Age: {selectedSession.student?.age}</p>
+                    </div>
+                  </div>
+
+                  {selectedSession.session_link && (
+                    <div>
+                      <label className="text-sm font-semibold text-slate-500">Session Link</label>
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4">
                         <a
-                          href={session.session_link}
+                          href={selectedSession.session_link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[#03b2ed] hover:text-[#fd59ca] transition-colors flex items-center space-x-1 text-sm"
+                          className="text-[#450063] hover:text-[#280120] transition-colors flex items-center space-x-2"
                         >
-                          <span>Join</span>
-                          <ExternalLink className="w-3 h-3" />
+                          <span>{selectedSession.session_link}</span>
+                          <ExternalLink className="w-4 h-4" />
                         </a>
                       </div>
                     </div>
                   )}
 
-                  {/* Payment Slip Preview */}
-                  {session.slip_link && (
-                    <PaymentSlipPreview slipLink={session.slip_link} sessionId={session.session_id} />
-                  )}
-                </div>
-
-                {/* Admin Controls - Always Visible */}
-                <div className="space-y-4 border-t border-slate-200 pt-4">
-                  {session.status === 'accepted' ? (
-                    <div className="text-center">
-                      <div className="bg-green-50 rounded-lg p-3 mb-3">
-                        <p className="text-green-700 font-medium">✓ Session Accepted</p>
-                        {session.session_link && (
-                          <a href={session.session_link} target="_blank" rel="noopener noreferrer" className="text-green-600 text-sm hover:underline">
-                            View Session Link
-                          </a>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => updateSessionStatus(session.session_id, 'reject')}
-                        disabled={actionLoading[session.session_id] === 'reject'}
-                        className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2 mx-auto"
-                      >
-                        {actionLoading[session.session_id] === 'reject' ? (
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        ) : (
-                          <X className="w-4 h-4" />
-                        )}
-                        <span>Reject Session</span>
-                      </button>
-                    </div>
-                  ) : session.status === 'rejected' ? (
-                    <div className="text-center">
-                      <div className="bg-red-50 rounded-lg p-3 mb-3">
-                        <p className="text-red-700 font-medium">✗ Session Rejected</p>
-                      </div>
-                      <div className="space-y-3">
-                        <div className="flex items-center space-x-3">
-                          <Link className="w-5 h-5 text-slate-600" />
-                          <input
-                            type="url"
-                            placeholder="Enter session link to accept"
-                            value={sessionLinks[session.session_id] || ''}
-                            onChange={(e) => setSessionLinks(prev => ({ ...prev, [session.session_id]: e.target.value }))}
-                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#9414d1] focus:border-transparent outline-none"
-                          />
-                        </div>
-                        <button
-                          onClick={() => handleAcceptWithLink(session.session_id)}
-                          disabled={actionLoading[session.session_id] === 'accept'}
-                          className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2 mx-auto"
-                        >
-                          {actionLoading[session.session_id] === 'accept' ? (
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          ) : (
-                            <Check className="w-4 h-4" />
-                          )}
-                          <span>Accept Session</span>
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
+                  {/* Payment Slip in Modal */}
+                  {selectedSession.slip_link && (
                     <div>
-                      <div className={`${session.status === 'payment_uploaded' ? 'bg-blue-50' : 'bg-yellow-50'} rounded-lg p-3 mb-3 text-center`}>
-                        <p className={`${session.status === 'payment_uploaded' ? 'text-blue-700' : 'text-yellow-700'} font-medium`}>
-                          {session.status === 'payment_uploaded' ? '💳 Payment Uploaded - Ready for Approval' : '⏳ Pending Approval'}
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-3 mb-3">
-                        <Link className="w-5 h-5 text-slate-600" />
-                        <input
-                          type="url"
-                          placeholder="Enter session link"
-                          value={sessionLinks[session.session_id] || ''}
-                          onChange={(e) => setSessionLinks(prev => ({ ...prev, [session.session_id]: e.target.value }))}
-                          className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#9414d1] focus:border-transparent outline-none"
-                        />
-                      </div>
-                      
-                      <div className="flex space-x-3">
-                        <button
-                          onClick={() => handleAcceptWithLink(session.session_id)}
-                          disabled={actionLoading[session.session_id] === 'accept'}
-                          className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
-                        >
-                          {actionLoading[session.session_id] === 'accept' ? (
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          ) : (
-                            <Check className="w-4 h-4" />
-                          )}
-                          <span>Accept</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => updateSessionStatus(session.session_id, 'reject')}
-                          disabled={actionLoading[session.session_id] === 'reject'}
-                          className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
-                        >
-                          {actionLoading[session.session_id] === 'reject' ? (
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          ) : (
-                            <X className="w-4 h-4" />
-                          )}
-                          <span>Reject</span>
-                        </button>
-                      </div>
+                      <label className="text-sm font-semibold text-slate-500">Payment Slip</label>
+                      <PaymentSlipPreview slipLink={selectedSession.slip_link} sessionId={selectedSession.session_id} />
                     </div>
                   )}
-                </div>
 
-                <div className="flex space-x-2 mt-4">
-                  <button 
-                    onClick={() => setSelectedSession(session)}
-                    className="flex-1 bg-gradient-to-r from-[#03b2ed] to-[#fd59ca] text-white py-2 px-4 rounded-xl font-medium hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2"
-                  >
-                    <Eye className="w-4 h-4" />
-                    <span>View Details</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {filteredSessions.length === 0 && (
-          <div className="text-center py-12">
-            <Calendar className="w-24 h-24 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-slate-500 mb-2">No sessions found</h3>
-            <p className="text-slate-400">Try adjusting your search criteria or filters</p>
-          </div>
-        )}
-
-        {/* Session Detail Modal */}
-        {selectedSession && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="bg-gradient-to-r from-[#03b2ed] to-[#fd59ca] p-6 rounded-t-2xl">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-white">Session Details</h2>
-                  <button
-                    onClick={() => setSelectedSession(null)}
-                    className="text-white hover:bg-white/20 rounded-full p-2 transition-all duration-300"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-              </div>
-              
-              <div className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="text-sm font-semibold text-slate-500">Session ID</label>
-                    <p className="text-lg text-slate-800">#{selectedSession.session_id}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-semibold text-slate-500">Status</label>
-                    <div className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedSession.status)}`}>
-                      {getStatusIcon(selectedSession.status)}
-                      <span className="capitalize">{selectedSession.status === 'payment_uploaded' ? 'Payment Uploaded' : selectedSession.status || 'Pending'}</span>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-semibold text-slate-500">Date</label>
-                    <p className="text-slate-800">{selectedSession.date}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-semibold text-slate-500">Start Time</label>
-                    <p className="text-slate-800">{selectedSession.start_time}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-slate-500">Topic</label>
-                  <p className="text-slate-800">{selectedSession.topic || 'General Session'}</p>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-semibold text-slate-500">Classroom</label>
-                  <div className="bg-slate-50 rounded-xl p-4">
-                    <p className="font-semibold text-slate-800">{selectedSession.class_room?.title}</p>
-                    <p className="text-sm text-slate-600">
-                      {selectedSession.class_room?.enrolled_student_count} students enrolled
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-slate-500">Mentor</label>
-                  <div className="bg-slate-50 rounded-xl p-4">
-                    <p className="font-semibold text-slate-800">
-                      {selectedSession.mentor?.title} {selectedSession.mentor?.first_name} {selectedSession.mentor?.last_name}
-                    </p>
-                    <p className="text-sm text-slate-600">{selectedSession.mentor?.email}</p>
-                    <p className="text-sm text-slate-600">Subject: {selectedSession.mentor?.subject}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-slate-500">Student</label>
-                  <div className="bg-slate-50 rounded-xl p-4">
-                    <p className="font-semibold text-slate-800">
-                      {selectedSession.student?.first_name} {selectedSession.student?.last_name}
-                    </p>
-                    <p className="text-sm text-slate-600">{selectedSession.student?.email}</p>
-                    <p className="text-sm text-slate-600">Age: {selectedSession.student?.age}</p>
-                  </div>
-                </div>
-
-                {selectedSession.session_link && (
-                  <div>
-                    <label className="text-sm font-semibold text-slate-500">Session Link</label>
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4">
-                      <a
-                        href={selectedSession.session_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[#03b2ed] hover:text-[#fd59ca] transition-colors flex items-center space-x-2"
-                      >
-                        <span>{selectedSession.session_link}</span>
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    </div>
-                  </div>
-                )}
-
-                {/* Payment Slip in Modal */}
-                {selectedSession.slip_link && (
-                  <div>
-                    <label className="text-sm font-semibold text-slate-500">Payment Slip</label>
-                    <PaymentSlipPreview slipLink={selectedSession.slip_link} sessionId={selectedSession.session_id} />
-                  </div>
-                )}
-
-                {/* Admin Controls in Modal - Always Visible */}
-                <div className="space-y-4 border-t border-slate-200 pt-4">
-                  <h3 className="text-lg font-semibold text-slate-700">Admin Actions</h3>
-                  
-                  {selectedSession.status === 'accepted' ? (
-                    <div>
-                      <div className="bg-green-50 rounded-lg p-3 mb-3 text-center">
-                        <p className="text-green-700 font-medium">✓ Session Already Accepted</p>
-                      </div>
-                      <button
-                        onClick={() => {
-                          updateSessionStatus(selectedSession.session_id, 'reject');
-                          setSelectedSession(null);
-                        }}
-                        disabled={actionLoading[selectedSession.session_id] === 'reject'}
-                        className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
-                      >
-                        {actionLoading[selectedSession.session_id] === 'reject' ? (
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        ) : (
-                          <X className="w-4 h-4" />
-                        )}
-                        <span>Reject Session</span>
-                      </button>
-                    </div>
-                  ) : selectedSession.status === 'rejected' ? (
-                    <div>
-                      <div className="bg-red-50 rounded-lg p-3 mb-3 text-center">
-                        <p className="text-red-700 font-medium">✗ Session Currently Rejected</p>
-                      </div>
-                      <div className="space-y-3">
-                        <div className="flex items-center space-x-3">
-                          <Link className="w-5 h-5 text-slate-600" />
-                          <input
-                            type="url"
-                            placeholder="Enter session link to accept"
-                            value={sessionLinks[selectedSession.session_id] || ''}
-                            onChange={(e) => setSessionLinks(prev => ({ ...prev, [selectedSession.session_id]: e.target.value }))}
-                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#9414d1] focus:border-transparent outline-none"
-                          />
+                  {/* Admin Controls in Modal */}
+                  <div className="space-y-4 border-t border-slate-200 pt-4">
+                    <h3 className="text-lg font-semibold text-slate-700">Admin Actions</h3>
+                    
+                    {selectedSession.status === 'accepted' ? (
+                      <div>
+                        <div className="bg-green-50 rounded-lg p-3 mb-3 text-center">
+                          <p className="text-green-700 font-medium">✓ Session Already Accepted</p>
                         </div>
-                        <button
-                          onClick={() => {
-                            handleAcceptWithLink(selectedSession.session_id);
-                            setSelectedSession(null);
-                          }}
-                          disabled={actionLoading[selectedSession.session_id] === 'accept'}
-                          className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
-                        >
-                          {actionLoading[selectedSession.session_id] === 'accept' ? (
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          ) : (
-                            <Check className="w-4 h-4" />
-                          )}
-                          <span>Accept Session</span>
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <div className={`${selectedSession.status === 'payment_uploaded' ? 'bg-blue-50' : 'bg-yellow-50'} rounded-lg p-3 mb-3 text-center`}>
-                        <p className={`${selectedSession.status === 'payment_uploaded' ? 'text-blue-700' : 'text-yellow-700'} font-medium`}>
-                          {selectedSession.status === 'payment_uploaded' ? '💳 Payment Uploaded - Ready for Approval' : '⏳ Pending Your Approval'}
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-3 mb-3">
-                        <Link className="w-5 h-5 text-slate-600" />
-                        <input
-                          type="url"
-                          placeholder="Enter session link"
-                          value={sessionLinks[selectedSession.session_id] || ''}
-                          onChange={(e) => setSessionLinks(prev => ({ ...prev, [selectedSession.session_id]: e.target.value }))}
-                          className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#9414d1] focus:border-transparent outline-none"
-                        />
-                      </div>
-                      
-                      <div className="flex space-x-3">
-                        <button
-                          onClick={() => {
-                            handleAcceptWithLink(selectedSession.session_id);
-                            setSelectedSession(null);
-                          }}
-                          disabled={actionLoading[selectedSession.session_id] === 'accept'}
-                          className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
-                        >
-                          {actionLoading[selectedSession.session_id] === 'accept' ? (
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          ) : (
-                            <Check className="w-4 h-4" />
-                          )}
-                          <span>Accept</span>
-                        </button>
-                        
                         <button
                           onClick={() => {
                             updateSessionStatus(selectedSession.session_id, 'reject');
                             setSelectedSession(null);
                           }}
                           disabled={actionLoading[selectedSession.session_id] === 'reject'}
-                          className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                          className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
                         >
                           {actionLoading[selectedSession.session_id] === 'reject' ? (
                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                           ) : (
                             <X className="w-4 h-4" />
                           )}
-                          <span>Reject</span>
+                          <span>Reject Session</span>
                         </button>
                       </div>
-                    </div>
-                  )}
+                    ) : selectedSession.status === 'rejected' ? (
+                      <div>
+                        <div className="bg-red-50 rounded-lg p-3 mb-3 text-center">
+                          <p className="text-red-700 font-medium">✗ Session Currently Rejected</p>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-3">
+                            <Link className="w-5 h-5 text-slate-600" />
+                            <input
+                              type="url"
+                              placeholder="Enter session link to accept"
+                              value={sessionLinks[selectedSession.session_id] || ''}
+                              onChange={(e) => setSessionLinks(prev => ({ ...prev, [selectedSession.session_id]: e.target.value }))}
+                              className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#450063] focus:border-transparent outline-none"
+                            />
+                          </div>
+                          <button
+                            onClick={() => {
+                              handleAcceptWithLink(selectedSession.session_id);
+                              setSelectedSession(null);
+                            }}
+                            disabled={actionLoading[selectedSession.session_id] === 'accept'}
+                            className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                          >
+                            {actionLoading[selectedSession.session_id] === 'accept' ? (
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                              <Check className="w-4 h-4" />
+                            )}
+                            <span>Accept Session</span>
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className={`${selectedSession.status === 'payment_uploaded' ? 'bg-blue-50' : 'bg-yellow-50'} rounded-lg p-3 mb-3 text-center`}>
+                          <p className={`${selectedSession.status === 'payment_uploaded' ? 'text-blue-700' : 'text-yellow-700'} font-medium`}>
+                            {selectedSession.status === 'payment_uploaded' ? '💳 Payment Uploaded - Ready for Approval' : '⏳ Pending Your Approval'}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-3 mb-3">
+                          <Link className="w-5 h-5 text-slate-600" />
+                          <input
+                            type="url"
+                            placeholder="Enter session link"
+                            value={sessionLinks[selectedSession.session_id] || ''}
+                            onChange={(e) => setSessionLinks(prev => ({ ...prev, [selectedSession.session_id]: e.target.value }))}
+                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#450063] focus:border-transparent outline-none"
+                          />
+                        </div>
+                        
+                        <div className="flex space-x-3">
+                          <button
+                            onClick={() => {
+                              handleAcceptWithLink(selectedSession.session_id);
+                              setSelectedSession(null);
+                            }}
+                            disabled={actionLoading[selectedSession.session_id] === 'accept'}
+                            className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                          >
+                            {actionLoading[selectedSession.session_id] === 'accept' ? (
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                              <Check className="w-4 h-4" />
+                            )}
+                            <span>Accept</span>
+                          </button>
+                          
+                          <button
+                            onClick={() => {
+                              updateSessionStatus(selectedSession.session_id, 'reject');
+                              setSelectedSession(null);
+                            }}
+                            disabled={actionLoading[selectedSession.session_id] === 'reject'}
+                            className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                          >
+                            {actionLoading[selectedSession.session_id] === 'reject' ? (
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                              <X className="w-4 h-4" />
+                            )}
+                            <span>Reject</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Slip Preview Modal */}
-        <SlipPreviewModal />
+          {/* Slip Preview Modal */}
+          <SlipPreviewModal />
+        </div>
       </div>
     </div>
   );
