@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Users, Star, Clock, ChevronRight, ChevronLeft, X, User, Briefcase, Award, DollarSign, BookOpen, AlertCircle, Loader } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useUserData } from '../../hooks/useUserData'; // ADD THIS IMPORT
 
-// ClassCard Component
+// ClassCard Component (unchanged)
 const ClassCard = ({ classData, onSchedule }) => {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -311,10 +312,11 @@ const ClassCard = ({ classData, onSchedule }) => {
 
 // Main Tutoe Page Component
 const TutoePage = () => {
-  const STUDENT_ID = 1;
+  // REPLACE THIS LINE: const STUDENT_ID = 1;
+  // WITH THESE LINES:
+  const { userData, userRole, loading: userLoading, error: userError } = useUserData();
 
   const navigate = useNavigate();
-
 
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -353,6 +355,64 @@ const TutoePage = () => {
     fetchClasses();
   }, []);
 
+  // ADD THIS: Show loading state while user data is being fetched
+  if (userLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex justify-center items-center">
+        <div className="text-center">
+          <Loader className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Loading user data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ADD THIS: Show error if user authentication failed
+  if (userError || !userData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex justify-center items-center">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-red-800 mb-4">Authentication Error</h3>
+            <p className="text-red-600 mb-6">
+              {userError || 'Unable to load user data. Please try logging in again.'}
+            </p>
+            <button 
+              onClick={() => window.location.href = '/'}
+              className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl transition-colors duration-300"
+            >
+              Return to Home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ADD THIS: Show error if user is not a student
+  if (userRole !== 'student') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex justify-center items-center">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-8 text-center">
+            <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-yellow-800 mb-4">Access Restricted</h3>
+            <p className="text-yellow-600 mb-6">
+              Classes page is only available for students. Your current role is: {userRole}
+            </p>
+            <button 
+              onClick={() => window.location.href = '/'}
+              className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-xl transition-colors duration-300"
+            >
+              Return to Home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Filter and search logic
   const filteredClasses = classes.filter(classItem => {
     const matchesSearch = classItem.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -384,11 +444,13 @@ const TutoePage = () => {
   // Get unique subjects for filter
   const subjects = [...new Set(classes.map(c => c.mentor.subject))];
 
+// REPLACE THIS FUNCTION:
 const handleSchedule = async (sessionData) => {
   try {
-    // Create session payload (without slip_link)
+    // CHANGE THIS LINE: student_id: STUDENT_ID,
+    // TO: student_id: userData.student_id, // Use authenticated student's ID
     const sessionPayload = {
-      student_id: STUDENT_ID,
+      student_id: userData.student_id, // Use authenticated student's ID
       class_room_id: sessionData.classRoomId,
       mentor_id: sessionData.mentorId,
       topic: sessionData.topic || "General Session",
@@ -444,8 +506,9 @@ const handleSchedule = async (sessionData) => {
                 Learning Journey
               </span>
             </h1>
+            {/* UPDATE THIS PARAGRAPH TO INCLUDE PERSONALIZED GREETING */}
             <p className="text-xl md:text-2xl text-purple-100 mb-12 leading-relaxed max-w-3xl mx-auto">
-              Connect with expert mentors and unlock your potential through personalized education. 
+              Welcome back, {userData.first_name}! Connect with expert mentors and unlock your potential through personalized education. 
               Join thousands of students who have already transformed their academic success.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useClerk, useUser } from '@clerk/clerk-react'; // Add Clerk hooks
 import {
   Users,
   BookOpen,
@@ -18,14 +19,63 @@ const Header = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  
   const navigate = useNavigate();
+  const { signOut } = useClerk(); // Get Clerk signOut function
+  const { user } = useUser(); // Get current user info
 
-  const handleLogoutConfirm = () => {
-    setShowConfirmLogout(false);
-    setIsProfileOpen(false);
-    setIsMobileMenuOpen(false);
-    // Optional: Clear auth/session data here
-    navigate('/');
+  const handleLogoutConfirm = async () => {
+    setIsLoggingOut(true);
+    
+    try {
+      // Sign out from Clerk first
+      console.log('Admin signing out from Clerk...');
+      
+      if (signOut) {
+        await signOut();
+      }
+      
+      // Clear any additional admin session data
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userType');
+      localStorage.removeItem('userData');
+      localStorage.removeItem('adminSession');
+      sessionStorage.clear();
+      
+      // Close modals and menus
+      setShowConfirmLogout(false);
+      setIsProfileOpen(false);
+      setIsMobileMenuOpen(false);
+      
+      // Navigate to home page
+      navigate('/');
+      
+    } catch (error) {
+      console.error('Error during admin logout:', error);
+      
+      // Fallback: Force logout
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+        setShowConfirmLogout(false);
+        setIsProfileOpen(false);
+        setIsMobileMenuOpen(false);
+        navigate('/');
+        
+        // If navigation fails, force page reload
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 100);
+        
+      } catch (fallbackError) {
+        console.error('Fallback logout failed:', fallbackError);
+        // Last resort - force page reload
+        window.location.href = '/';
+      }
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const navigation = [
@@ -35,6 +85,10 @@ const Header = () => {
     { name: 'Mentors', href: '/admin/mentors', icon: User },
     { name: 'Students', href: '/admin/students', icon: GraduationCap },
   ];
+
+  // Get admin name from Clerk user or fallback to "Admin"
+  const adminName = user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Admin';
+  const adminEmail = user?.primaryEmailAddress?.emailAddress;
 
   return (
     <header className="relative">
@@ -80,15 +134,37 @@ const Header = () => {
                   className="flex items-center space-x-3 p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300"
                 >
                   <div className="w-8 h-8 bg-gradient-to-br from-[#03b2ed] to-[#fd59ca] rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
+                    {user?.imageUrl ? (
+                      <img 
+                        src={user.imageUrl} 
+                        alt="Admin" 
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-4 h-4 text-white" />
+                    )}
                   </div>
-                  <span className="hidden md:block font-medium text-white">Admin</span>
+                  <div className="hidden md:block text-left">
+                    <div className="font-medium text-white text-sm">{adminName}</div>
+                    {adminEmail && (
+                      <div className="text-white/60 text-xs">{adminEmail}</div>
+                    )}
+                  </div>
                   <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {/* Profile Dropdown Menu */}
                 {isProfileOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 py-2 z-50">
+                  <div className="absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 py-2 z-50">
+                    {/* User Info Section */}
+                    <div className="px-4 py-3 border-b border-slate-200">
+                      <div className="font-medium text-slate-900">{adminName}</div>
+                      {adminEmail && (
+                        <div className="text-sm text-slate-500">{adminEmail}</div>
+                      )}
+                      <div className="text-xs text-red-600 font-medium mt-1">Administrator</div>
+                    </div>
+                    
                     <a href="/profile" className="flex items-center space-x-3 px-4 py-3 text-slate-700 hover:bg-slate-50 transition-colors">
                       <User className="w-4 h-4" />
                       <span>Profile</span>
@@ -100,10 +176,11 @@ const Header = () => {
                     <hr className="my-2 border-slate-200" />
                     <button
                       onClick={() => setShowConfirmLogout(true)}
-                      className="w-full text-left flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors"
+                      disabled={isLoggingOut}
+                      className="w-full text-left flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <LogOut className="w-4 h-4" />
-                      <span>Sign out</span>
+                      <span>{isLoggingOut ? 'Signing out...' : 'Sign out'}</span>
                     </button>
                   </div>
                 )}
@@ -124,6 +201,27 @@ const Header = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden bg-black/20 backdrop-blur-xl border-t border-white/10">
             <div className="px-4 py-4 space-y-2">
+              {/* Mobile User Info */}
+              <div className="px-4 py-3 border-b border-white/20 mb-2">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#03b2ed] to-[#fd59ca] rounded-full flex items-center justify-center">
+                    {user?.imageUrl ? (
+                      <img 
+                        src={user.imageUrl} 
+                        alt="Admin" 
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-5 h-5 text-white" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="font-medium text-white">{adminName}</div>
+                    <div className="text-xs text-red-300">Administrator</div>
+                  </div>
+                </div>
+              </div>
+
               {navigation.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -159,10 +257,11 @@ const Header = () => {
               </a>
               <button
                 onClick={() => setShowConfirmLogout(true)}
-                className="w-full text-left flex items-center space-x-3 px-4 py-3 rounded-xl text-red-300 hover:text-red-200 hover:bg-red-900/20 transition-all duration-300"
+                disabled={isLoggingOut}
+                className="w-full text-left flex items-center space-x-3 px-4 py-3 rounded-xl text-red-300 hover:text-red-200 hover:bg-red-900/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <LogOut className="w-5 h-5" />
-                <span className="font-medium">Sign out</span>
+                <span className="font-medium">{isLoggingOut ? 'Signing out...' : 'Sign out'}</span>
               </button>
             </div>
           </div>
@@ -176,20 +275,35 @@ const Header = () => {
       {showConfirmLogout && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-lg">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Confirm Sign Out</h2>
-            <p className="text-sm text-gray-600 mb-6">Are you sure you want to sign out?</p>
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <LogOut className="w-6 h-6 text-red-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800">Confirm Sign Out</h2>
+                <p className="text-sm text-gray-500">Administrator Session</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mb-6">
+              Are you sure you want to sign out? You will be redirected to the home page and will need to sign in again to access the admin panel.
+            </p>
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setShowConfirmLogout(false)}
-                className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-800"
+                disabled={isLoggingOut}
+                className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 onClick={handleLogoutConfirm}
-                className="px-4 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white"
+                disabled={isLoggingOut}
+                className="px-4 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
               >
-                Sign Out
+                {isLoggingOut && (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                )}
+                <span>{isLoggingOut ? 'Signing Out...' : 'Sign Out'}</span>
               </button>
             </div>
           </div>

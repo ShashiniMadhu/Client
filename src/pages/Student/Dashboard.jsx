@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Users, Star, Clock, ChevronRight, ChevronLeft, X, User, Briefcase, Award, DollarSign, BookOpen, AlertCircle, Loader, Mail, Phone, MapPin } from 'lucide-react';
+import { useUserData } from '../../hooks/useUserData';
 
-// SessionCard Component
+// SessionCard Component (unchanged)
 const SessionCard = ({ sessionData }) => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -149,24 +150,47 @@ const SessionCard = ({ sessionData }) => {
 
 // Main Sessions Page Component
 const SessionsPage = () => {
-  const STUDENT_ID = 1;
-
+  // Use your custom hook to get authenticated user data
+  const { userData, userRole, loading: userLoading, error: userError } = useUserData();
+  
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+  const [viewMode, setViewMode] = useState('grid');
   const [sortBy, setSortBy] = useState('date');
 
   // Fetch sessions from API
   useEffect(() => {
     const fetchSessions = async () => {
+      // Wait for user data to load first
+      if (userLoading) return;
+      
+      // Check for user errors
+      if (userError) {
+        setError(`Authentication error: ${userError}`);
+        setLoading(false);
+        return;
+      }
+      
+      // Check if user data is available and user is a student
+      if (!userData || userRole !== 'student') {
+        setError('Only students can view sessions');
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
         
-        const response = await fetch(`http://localhost:8080/api/v1/academic/${STUDENT_ID}/sessions`);
+        // Use the authenticated student's ID from userData
+        const studentId = userData.student_id; // Adjust this field name based on your API response
+        
+        console.log('Fetching sessions for student ID:', studentId);
+        
+        const response = await fetch(`http://localhost:8080/api/v1/academic/${studentId}/sessions`);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch sessions: ${response.status} ${response.statusText}`);
@@ -186,7 +210,65 @@ const SessionsPage = () => {
     };
 
     fetchSessions();
-  }, [STUDENT_ID]);
+  }, [userData, userRole, userLoading, userError]); // Dependencies include user data
+
+  // Show loading state while user data is being fetched
+  if (userLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex justify-center items-center">
+        <div className="text-center">
+          <Loader className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Loading user data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if user authentication failed
+  if (userError || !userData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex justify-center items-center">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-red-800 mb-4">Authentication Error</h3>
+            <p className="text-red-600 mb-6">
+              {userError || 'Unable to load user data. Please try logging in again.'}
+            </p>
+            <button 
+              onClick={() => window.location.href = '/'}
+              className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl transition-colors duration-300"
+            >
+              Return to Home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if user is not a student
+  if (userRole !== 'student') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex justify-center items-center">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-8 text-center">
+            <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-yellow-800 mb-4">Access Restricted</h3>
+            <p className="text-yellow-600 mb-6">
+              Sessions page is only available for students. Your current role is: {userRole}
+            </p>
+            <button 
+              onClick={() => window.location.href = '/'}
+              className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-xl transition-colors duration-300"
+            >
+              Return to Home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Filter and search logic
   const filteredSessions = sessions.filter(session => {
@@ -234,8 +316,7 @@ const SessionsPage = () => {
               </span>
             </h1>
             <p className="text-xl md:text-2xl text-purple-100 mb-12 leading-relaxed max-w-3xl mx-auto">
-              Track your scheduled sessions, connect with your mentors, and manage your personalized learning journey. 
-              Stay organized and never miss an important session.
+              Welcome back, {userData.first_name}! Track your scheduled sessions, connect with your mentors, and manage your personalized learning journey.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <button className="bg-gradient-to-r from-[#fd59ca] to-[#03b2ed] hover:from-[#03b2ed] hover:to-[#fd59ca] text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105">

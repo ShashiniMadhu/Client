@@ -1,119 +1,89 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Users, BookOpen, Award, Star, ArrowRight, X, GraduationCap } from 'lucide-react';
+import { useUser, SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react';
+import { Users, BookOpen, Award, Star, ArrowRight, GraduationCap } from 'lucide-react';
 import Footer from '../../components/footer';
+import axios from 'axios';
 
 const LandingPage = () => {
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
-  
-  const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone_number: '',
-    address: '',
-    password: '',
-    confirmPassword: '',
-    age: ''
-  });
-  
-  // Login state for error/loading
+  const { user, isSignedIn } = useUser();
   const navigate = useNavigate();
-  const [loginError, setLoginError] = useState('');
-  const [loginLoading, setLoginLoading] = useState(false);
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
 
-  const resetForm = () => {
-    setFormData({
-      first_name: '',
-      last_name: '',
-      email: '',
-      phone_number: '',
-      address: '',
-      password: '',
-      confirmPassword: '',
-      age: ''
-    });
-  };
+  // Handle role-based navigation after sign in
+  React.useEffect(() => {
+    const handleSignedInUser = async () => {
+      if (isSignedIn && user) {
+        try {
+          const email = user.primaryEmailAddress?.emailAddress;
+          
+          // First check if user is an admin (existing in DB)
+          try {
+            const adminResponse = await axios.get(`http://localhost:8080/api/v1/academic/admin/by-email/${email}`);
+            if (adminResponse.data) {
+              // Admin found, link with Clerk and navigate
+              await axios.post('http://localhost:8080/api/v1/academic/admin/link-clerk', {
+                email: email,
+                clerkUserId: user.id
+              });
+              navigate('/admin');
+              return;
+            }
+          } catch (adminError) {
+            // Admin not found, check if student exists
+          }
 
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (authMode === 'login') {
-      setLoginError('');
-      setLoginLoading(true);
-      if (!formData.email || !formData.password) {
-        setLoginError('Please fill in all fields');
-        setLoginLoading(false);
-        return;
-      }
-      const result = await login(formData.email, formData.password);
-      if (result.success) {
-        // Redirect based on role (case-insensitive)
-        if (result.data.role && result.data.role.toLowerCase() === 'student') {
-          navigate('/student');
-        } else if (result.data.role && result.data.role.toLowerCase() === 'mentor') {
-          navigate('/mentor');
-        } else {
-          navigate('/');
+          // Check if user is an existing student
+          try {
+            const studentResponse = await axios.get(`http://localhost:8080/api/v1/academic/student/by-email/${email}`);
+            if (studentResponse.data) {
+              // Student found, link with Clerk and navigate
+              await axios.post('http://localhost:8080/api/v1/academic/student/link-clerk', {
+                email: email,
+                clerkUserId: user.id
+              });
+              navigate('/student');
+              return;
+            }
+          } catch (studentError) {
+            // Student not found, this is a new user - create student account
+            setShowRoleSelection(true);
+          }
+        } catch (error) {
+          console.error('Error checking user role:', error);
+          setShowRoleSelection(true);
         }
-        setShowAuthModal(false);
-        setAuthMode('login');
-        resetForm();
-      } else {
-        setLoginError(result.error || 'Login failed.');
       }
-      setLoginLoading(false);
-      return;
-    }
+    };
 
-    if (authMode === 'signup' && formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match!');
-      return;
-    }
+    handleSignedInUser();
+  }, [isSignedIn, user, navigate]);
 
-    // Prepare student data
-    const submitData = {
-      first_name: formData.first_name,
-      last_name: formData.last_name,
-      email: formData.email,
-      phone_number: formData.phone_number,
-      address: formData.address,
-      age: parseInt(formData.age),
-      password: formData.password,
-      role: 'student'
+  const handleStudentCreation = async () => {
+    if (!user) return;
+
+    const userData = {
+      first_name: user.firstName || '',
+      last_name: user.lastName || '',
+      email: user.primaryEmailAddress?.emailAddress || '',
+      phone_number: user.primaryPhoneNumber?.phoneNumber || '',
+      address: '', // Can be filled later in profile
+      age: 18, // Default age
+      password: 'clerk_managed', // Placeholder since Clerk manages auth
+      role: 'student',
+      clerkUserId: user.id
     };
 
     try {
-      const response = await axios.post('http://localhost:8080/api/v1/academic/student', submitData);
-      if (response.status === 201 || response.status === 200) {
-        alert('Registration successful!');
-      } else {
-        alert('Registration failed. Please try again.');
-      }
+      await axios.post('http://localhost:8080/api/v1/academic/student', userData);
+      navigate('/student');
+      setShowRoleSelection(false);
     } catch (error) {
-      if (error.response && error.response.data && error.response.data.message) {
-        alert(`Error: ${error.response.data.message}`);
-      } else {
-        alert('An error occurred during registration.');
-      }
+      console.error('Error creating student account:', error);
+      alert('Error creating student account. Please try again.');
     }
-
-    // Close modal and reset
-    setShowAuthModal(false);
-    setAuthMode('login');
-    resetForm();
   };
 
-  // --- RETURN: Main JSX ---
   const stats = [
     { icon: <Users className="w-6 h-6" />, number: "10,000+", label: "Active Students" },
     { icon: <BookOpen className="w-6 h-6" />, number: "500+", label: "Expert Mentors" },
@@ -137,26 +107,35 @@ const LandingPage = () => {
                 <p className="text-gray-500 text-sm">Learn • Grow • Succeed</p>
               </div>
             </div>
+            
             {/* Auth Buttons */}
             <div className="flex items-center space-x-3">
-              <button
-                onClick={() => {
-                  setShowAuthModal(true);
-                  setAuthMode('login');
-                }}
-                className="px-6 py-2 text-[#9414d1] font-medium hover:bg-gray-50 rounded-lg transition-all duration-200"
-              >
-                Login
-              </button>
-              <button
-                onClick={() => {
-                  setShowAuthModal(true);
-                  setAuthMode('signup');
-                }}
-                className="px-6 py-2 bg-gradient-to-r from-[#9414d1] to-[#03b2ed] hover:from-[#450063] hover:to-[#fd59ca] text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
-              >
-                Sign Up
-              </button>
+              {isSignedIn ? (
+                <div className="flex items-center space-x-4">
+                  <span className="text-gray-700">Welcome, {user?.firstName}!</span>
+                  <UserButton 
+                    afterSignOutUrl="/"
+                    appearance={{
+                      elements: {
+                        avatarBox: "w-10 h-10"
+                      }
+                    }}
+                  />
+                </div>
+              ) : (
+                <>
+                  <SignInButton mode="modal">
+                    <button className="px-6 py-2 text-[#9414d1] font-medium hover:bg-gray-50 rounded-lg transition-all duration-200">
+                      Login
+                    </button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <button className="px-6 py-2 bg-gradient-to-r from-[#9414d1] to-[#03b2ed] hover:from-[#450063] hover:to-[#fd59ca] text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105">
+                      Join as Student
+                    </button>
+                  </SignUpButton>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -180,18 +159,16 @@ const LandingPage = () => {
               Connect with industry experts and accelerate your learning journey. Join thousands of students who have transformed their careers through personalized mentorship.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={() => {
-                  setShowAuthModal(true);
-                  setAuthMode('signup');
-                }}
-                className="group bg-gradient-to-r from-[#03b2ed] to-[#fd59ca] hover:from-[#fd59ca] hover:to-[#03b2ed] text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105"
-              >
-                <div className="flex items-center justify-center space-x-2">
-                  <span>Start Learning Today</span>
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-                </div>
-              </button>
+              {!isSignedIn && (
+                <SignUpButton mode="modal">
+                  <button className="group bg-gradient-to-r from-[#03b2ed] to-[#fd59ca] hover:from-[#fd59ca] hover:to-[#03b2ed] text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105">
+                    <div className="flex items-center justify-center space-x-2">
+                      <span>Join as Student</span>
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                    </div>
+                  </button>
+                </SignUpButton>
+              )}
               <button className="bg-white/20 backdrop-blur-lg border border-white/30 hover:bg-white/30 text-white font-bold py-4 px-8 rounded-xl transition-all duration-300">
                 Learn More
               </button>
@@ -248,261 +225,48 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* Auth Modal */}
-      {showAuthModal && (
+      {/* Student Account Creation Modal */}
+      {showRoleSelection && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-auto max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
-              <h2 className="text-2xl font-bold text-[#280120]">
-                {authMode === 'login' ? 'Welcome Back' : 'Join SkillMentor'}
-              </h2>
-              <button
-                onClick={() => {
-                  setShowAuthModal(false);
-                  setAuthMode('login');
-                  resetForm();
-                }}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-            {/* Modal Body */}
-            <div className="p-6">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {authMode === 'login' ? (
-                  <>
-                    {loginError && (
-                      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                        {loginError}
-                      </div>
-                    )}
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9414d1] focus:border-transparent transition-all duration-200"
-                        placeholder="Enter your email"
-                        required
-                      />
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-auto">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-[#03b2ed] to-[#fd59ca] rounded-2xl flex items-center justify-center text-white mx-auto mb-4">
+                <GraduationCap className="w-8 h-8" />
+              </div>
+              <h2 className="text-2xl font-bold text-[#280120] mb-4">Welcome to SkillMentor!</h2>
+              <p className="text-gray-600 mb-6">
+                We'll create your student account so you can start learning with expert mentors.
+              </p>
+              
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#03b2ed] to-[#fd59ca] rounded-lg flex items-center justify-center text-white">
+                      <GraduationCap className="w-5 h-5" />
                     </div>
-                    <div>
-                      <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                        Password
-                      </label>
-                      <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9414d1] focus:border-transparent transition-all duration-200"
-                        placeholder="Enter your password"
-                        required
-                      />
+                    <div className="text-left">
+                      <h3 className="font-semibold text-gray-900">Student Account</h3>
+                      <p className="text-sm text-gray-600">Access courses, mentors, and learning resources</p>
                     </div>
-                    <div className="text-right">
-                      <button
-                        type="button"
-                        className="text-sm text-[#9414d1] hover:underline"
-                      >
-                        Forgot Password?
-                      </button>
-                    </div>
-                    <div>
-                      <button
-                        type="submit"
-                        disabled={loginLoading}
-                        className="w-full bg-[#9414d1] hover:bg-[#450063] text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.02] mt-6 disabled:opacity-50"
-                      >
-                        {loginLoading ? 'Signing in...' : 'Sign In'}
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {/* Student Signup Form */}
-                    <div className="text-center mb-6">
-                      <div className="w-16 h-16 bg-gradient-to-br from-[#03b2ed] to-[#fd59ca] rounded-2xl flex items-center justify-center text-white mx-auto mb-4">
-                        <GraduationCap className="w-8 h-8" />
-                      </div>
-                      <p className="text-gray-600">Create your student account and start learning!</p>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-2">
-                          First Name *
-                        </label>
-                        <input
-                          type="text"
-                          id="first_name"
-                          name="first_name"
-                          value={formData.first_name}
-                          onChange={handleInputChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9414d1] focus:border-transparent transition-all duration-200"
-                          placeholder="First name"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-2">
-                          Last Name *
-                        </label>
-                        <input
-                          type="text"
-                          id="last_name"
-                          name="last_name"
-                          value={formData.last_name}
-                          onChange={handleInputChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9414d1] focus:border-transparent transition-all duration-200"
-                          placeholder="Last name"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                        Email Address *
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9414d1] focus:border-transparent transition-all duration-200"
-                        placeholder="Enter your email"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700 mb-2">
-                        Phone Number *
-                      </label>
-                      <input
-                        type="tel"
-                        id="phone_number"
-                        name="phone_number"
-                        value={formData.phone_number}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9414d1] focus:border-transparent transition-all duration-200"
-                        placeholder="+1234567890"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
-                        Address *
-                      </label>
-                      <input
-                        type="text"
-                        id="address"
-                        name="address"
-                        value={formData.address}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9414d1] focus:border-transparent transition-all duration-200"
-                        placeholder="Enter your address"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-2">
-                        Age *
-                      </label>
-                      <input
-                        type="number"
-                        id="age"
-                        name="age"
-                        value={formData.age}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9414d1] focus:border-transparent transition-all duration-200"
-                        placeholder="Enter your age"
-                        min="1"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                        Password *
-                      </label>
-                      <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9414d1] focus:border-transparent transition-all duration-200"
-                        placeholder="Create a password"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                        Confirm Password *
-                      </label>
-                      <input
-                        type="password"
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        value={formData.confirmPassword}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#9414d1] focus:border-transparent transition-all duration-200"
-                        placeholder="Confirm your password"
-                        required
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      className="w-full bg-[#9414d1] hover:bg-[#450063] text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.02] mt-6"
-                    >
-                      Create Student Account
-                    </button>
-                  </>
-                )}
-                <p className="text-center text-sm text-gray-600 mt-4">
-                  {authMode === 'login' ? (
-                    <>
-                      Don't have an account?{' '}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAuthMode('signup');
-                          setLoginError(''); // Clear login error when switching to signup
-                        }}
-                        className="text-[#9414d1] font-medium hover:underline"
-                      >
-                        Sign Up
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      Already have an account?{' '}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAuthMode('login');
-                          resetForm(); // Reset form when switching to login
-                        }}
-                        className="text-[#9414d1] font-medium hover:underline"
-                      >
-                        Login
-                      </button>
-                    </>
-                  )}
+                  </div>
+                </div>
+                
+                <button
+                  onClick={handleStudentCreation}
+                  className="w-full bg-gradient-to-r from-[#9414d1] to-[#03b2ed] hover:from-[#450063] hover:to-[#fd59ca] text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105"
+                >
+                  Create My Student Account
+                </button>
+                
+                <p className="text-xs text-gray-500 mt-4">
+                  Already an admin? Use the login button above with your existing credentials.
                 </p>
-              </form>
+              </div>
             </div>
           </div>
         </div>
       )}
+
       <Footer />
     </div>
   );
