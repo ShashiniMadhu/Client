@@ -44,11 +44,12 @@ const LandingPage = () => {
               return;
             }
           } catch (studentError) {
-            setShowRoleSelection(true);
+            // Student not found - don't automatically show role selection
+            // User can manually trigger student creation via signup buttons
+            console.log('Student not found for email:', email);
           }
         } catch (error) {
           console.error('Error checking user role:', error);
-          setShowRoleSelection(true);
         }
       }
     };
@@ -57,7 +58,12 @@ const LandingPage = () => {
   }, [isSignedIn, user, navigate]);
 
   const handleStudentCreation = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user found');
+      return;
+    }
+
+    console.log('Starting student creation process for user:', user.primaryEmailAddress?.emailAddress);
 
     const userData = {
       first_name: user.firstName || '',
@@ -72,12 +78,38 @@ const LandingPage = () => {
     };
 
     try {
-      await axios.post('http://localhost:8080/api/v1/academic/student', userData);
+      // Check if student already exists
+      const email = user.primaryEmailAddress?.emailAddress;
+      console.log('Checking if student exists for email:', email);
+      
+      try {
+        const existingStudent = await axios.get(`http://localhost:8080/api/v1/academic/student/by-email/${email}`);
+        if (existingStudent.data) {
+          console.log('Student already exists, navigating to student page');
+          // Link clerk user if not already linked
+          await axios.post('http://localhost:8080/api/v1/academic/student/link-clerk', {
+            email: email,
+            clerkUserId: user.id
+          });
+          navigate('/student');
+          return;
+        }
+      } catch (checkError) {
+        console.log('Student does not exist, will create new student');
+      }
+
+      // Create new student
+      console.log('Creating new student with data:', userData);
+      const createResponse = await axios.post('http://localhost:8080/api/v1/academic/student', userData);
+      console.log('Student created successfully:', createResponse.data);
+      
+      console.log('Navigating to student page');
       navigate('/student');
       setShowRoleSelection(false);
     } catch (error) {
-      console.error('Error creating student account:', error);
-      alert('Error creating student account. Please try again.');
+      console.error('Error in student creation process:', error);
+      console.error('Error details:', error.response?.data);
+      alert(`Error creating student account: ${error.response?.data?.message || error.message}. Please try again.`);
     }
   };
 
@@ -219,7 +251,7 @@ const LandingPage = () => {
               Connect with industry experts and accelerate your learning journey. Join thousands of students who have transformed their careers through personalized mentorship.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up animation-delay-900">
-              {!isSignedIn && (
+              {!isSignedIn ? (
                 <SignUpButton mode="modal">
                   <button className="group bg-gradient-to-r from-[#03b2ed] to-[#fd59ca] hover:from-[#fd59ca] hover:to-[#03b2ed] text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105">
                     <div className="flex items-center justify-center space-x-2">
@@ -228,6 +260,16 @@ const LandingPage = () => {
                     </div>
                   </button>
                 </SignUpButton>
+              ) : (
+                <button 
+                  onClick={handleStudentCreation}
+                  className="group bg-gradient-to-r from-[#03b2ed] to-[#fd59ca] hover:from-[#fd59ca] hover:to-[#03b2ed] text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105"
+                >
+                  <div className="flex items-center justify-center space-x-2">
+                    <span>Join as Student</span>
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                  </div>
+                </button>
               )}
               <button className="bg-white/20 backdrop-blur-lg border border-white/30 hover:bg-white/30 text-white font-bold py-4 px-8 rounded-xl transition-all duration-300">
                 Learn More

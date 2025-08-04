@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Users, Star, Clock, ChevronRight, ChevronLeft, X, User, Briefcase, Award, DollarSign, BookOpen, AlertCircle, Loader } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUserData } from '../../hooks/useUserData';
-import logo from '../../assets/logo.png';
+import WarningNotification from '../Student/Notification';
 import hero from '../../assets/hero.jpeg'; 
 import MentorProfileModal from '../../components/MentorDetails';
 
@@ -380,6 +380,17 @@ const TutoePage = () => {
   const closeMentorProfile = () => {
     setShowMentorProfile(false);
     setSelectedMentorId(null);
+  };
+
+  const [showWarning, setShowWarning] = useState(false);
+
+  useEffect(() => {
+    // Show warning when component mounts (when user enters student portal)
+    setShowWarning(true);
+  }, []);
+
+  const handleWarningClose = () => {
+    setShowWarning(false);
   };
 
   // Show loading state while user data is being fetched
@@ -804,6 +815,15 @@ const TutoePage = () => {
           )}
         </div>
       </div>
+
+      {/* Warning Notification */}
+      {showWarning && (
+        <WarningNotification
+          message="Update your profile with valid credentials before proceeding to schedule sessions."
+          duration={15000}
+          onClose={handleWarningClose}
+        />
+      )}
 
       {/* Mentor Profile Modal */}
       <MentorProfileModal
