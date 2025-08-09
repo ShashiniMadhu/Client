@@ -62,58 +62,59 @@ const LandingPage = () => {
 // Only showing the handleStudentCreation function from LandingPage.jsx
 // Replace your existing handleStudentCreation function with this improved version:
 
+// Updated Frontend Code with Better Debugging
 const handleStudentCreation = async () => {
   if (!user) {
     console.log('No user found');
     return;
   }
 
-  console.log('Starting student creation process for user:', user.primaryEmailAddress?.emailAddress);
+  const email = user.primaryEmailAddress?.emailAddress;
+  const clerkUserId = user.id;
+  const firstName = user.firstName || '';
+  const lastName = user.lastName || '';
+
+  console.log('🔍 User details:', { email, clerkUserId, firstName, lastName });
+
+  if (!email) {
+    alert('No email found. Please ensure your account has a valid email.');
+    return;
+  }
 
   try {
-    const email = user.primaryEmailAddress?.emailAddress;
-    const clerkUserId = user.id;
-    const firstName = user.firstName || '';
-    const lastName = user.lastName || '';
-
-    if (!email) {
-      alert('No email found. Please ensure your account has a valid email.');
-      return;
-    }
-
-    // First check if student already exists
+    // Check if student already exists
+    console.log('🔍 Checking if student exists...');
     try {
-      console.log('Checking if student exists for email:', email);
-      const existingStudent = await axios.get(`${API_BASE_URL}/api/v1/academic/student/by-email/${email}`);
+      const checkUrl = `${API_BASE_URL}/api/v1/academic/student/by-email/${encodeURIComponent(email)}`;
+      console.log('🔍 Checking URL:', checkUrl);
+      
+      const existingStudent = await axios.get(checkUrl);
       
       if (existingStudent.data) {
-        console.log('Student already exists, linking with Clerk and navigating');
+        console.log('✅ Student already exists:', existingStudent.data);
         
-        // Link clerk user if not already linked
+        // Link with Clerk if needed
         await axios.post(`${API_BASE_URL}/api/v1/academic/student/link-clerk`, {
           email: email,
           clerkUserId: clerkUserId
         });
         
-        // Set localStorage and navigate
         localStorage.setItem('userRole', 'student');
         localStorage.setItem('userEmail', email);
         localStorage.setItem('clerkUserId', clerkUserId);
-        
         navigate('/student');
         return;
       }
     } catch (checkError) {
+      console.log('ℹ️ Student check result:', checkError.response?.status, checkError.response?.data);
       if (checkError.response?.status !== 404) {
-        console.error('Error checking existing student:', checkError);
+        console.error('❌ Unexpected error checking student:', checkError);
         alert('Error checking student account. Please try again.');
         return;
       }
-      // 404 is expected - student doesn't exist, continue to create
-      console.log('Student does not exist, proceeding with creation');
     }
 
-    // Create new student - matching your DTO exactly
+    // Create new student
     const newStudentData = {
       clerk_user_id: clerkUserId,
       first_name: firstName || 'Student',
@@ -126,27 +127,27 @@ const handleStudentCreation = async () => {
       role: 'student'
     };
 
-    console.log('Creating new student with data:', newStudentData);
+    console.log('📝 Creating student with data:', newStudentData);
     
-    const createResponse = await axios.post(
-      `${API_BASE_URL}/api/v1/academic/student`, 
-      newStudentData,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+    const createUrl = `${API_BASE_URL}/api/v1/academic/student`;
+    console.log('📝 Create URL:', createUrl);
+    
+    const createResponse = await axios.post(createUrl, newStudentData, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 10000 // 10 second timeout
+    });
 
-    console.log('Student created successfully:', createResponse.data);
+    console.log('✅ Create response status:', createResponse.status);
+    console.log('✅ Create response data:', createResponse.data);
 
-    if (createResponse.status === 200 && createResponse.data) {
-      // Set localStorage
+    if (createResponse.status === 201 && createResponse.data) {
       localStorage.setItem('userRole', 'student');
       localStorage.setItem('userEmail', email);
       localStorage.setItem('clerkUserId', clerkUserId);
       
-      console.log('Navigating to student page');
+      console.log('✅ Navigating to student dashboard...');
       navigate('/student');
       setShowRoleSelection(false);
     } else {
@@ -154,14 +155,21 @@ const handleStudentCreation = async () => {
     }
 
   } catch (error) {
-    console.error('Error in student creation process:', error);
+    console.error('❌ Full error object:', error);
+    console.error('❌ Error response:', error.response);
+    console.error('❌ Error status:', error.response?.status);
+    console.error('❌ Error data:', error.response?.data);
     
     let errorMessage = 'Error creating student account. Please try again.';
     
-    if (error.response?.status === 400) {
-      errorMessage = 'Invalid data provided. Please check your account information.';
+    if (error.code === 'ECONNABORTED') {
+      errorMessage = 'Request timeout. Please check your internet connection.';
+    } else if (error.response?.status === 400) {
+      errorMessage = `Invalid data: ${error.response.data?.message || 'Please check your information'}`;
     } else if (error.response?.status === 409) {
       errorMessage = 'Student account already exists with this email.';
+    } else if (error.response?.status === 500) {
+      errorMessage = 'Server error. Please try again later or contact support.';
     } else if (error.response?.data?.message) {
       errorMessage = error.response.data.message;
     }
