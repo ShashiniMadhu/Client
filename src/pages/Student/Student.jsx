@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Header from '../../components/header'; // Import your actual Header component
+import Header from '../../components/header'; 
 import TutorPage from './Tutor';
 import About from '../../components/Aboutus';
 import Footer from '../../components/footer';
