@@ -74,19 +74,18 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
           }
         } catch (studentError) {
           console.log('ℹ️ Student not found, will create new student');
-          console.log('Student check error:', studentError.response?.status, studentError.response?.data);
           
+          // Create new student with Clerk data
           try {
-            // Create new student with Clerk data - EXACTLY matching your DTO requirements
             const newStudentData = {
               clerk_user_id: clerkUserId,
               first_name: firstName,
               last_name: lastName,
               email: email,
-              phone_number: 'Not provided', // Default value - not empty
-              address: 'Not provided', // Default value - not empty  
-              age: 18, // Minimum age as per validation
-              password: 'ClerkUser123!', // Strong password meeting validation (8+ chars)
+              phone_number: 'Not provided', 
+              address: 'Not provided',  
+              age: 18, 
+              password: 'ClerkUser123!', 
               role: 'student'
             };
 
@@ -104,39 +103,40 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
             console.log('✅ Student created successfully:', createResponse.data);
 
-            if (createResponse.data) {
+            // ✅ IMPORTANT: Set role immediately after successful creation
+            if (createResponse.data && createResponse.status === 200) {
               setUserRole('student');
               localStorage.setItem('userRole', 'student');
               localStorage.setItem('userEmail', email);
               localStorage.setItem('clerkUserId', clerkUserId);
               setLoading(false);
               return;
+            } else {
+              throw new Error('Student creation returned invalid response');
             }
-          } catch (createError) {
-            console.error('❌ Error creating student:');
-            console.error('Status:', createError.response?.status);
-            console.error('Error data:', createError.response?.data);
-            console.error('Full error:', createError);
             
-            // Set a more descriptive error message
+          } catch (createError) {
+            console.error('❌ Error creating student:', createError);
+            
+            // Better error handling
             let errorMessage = 'Failed to create student account';
-            if (createError.response?.data?.message) {
+            if (createError.response?.status === 400) {
+              errorMessage = 'Invalid student data provided';
+            } else if (createError.response?.status === 409) {
+              errorMessage = 'Student account already exists';
+            } else if (createError.response?.data?.message) {
               errorMessage = createError.response.data.message;
-            } else if (createError.response?.data) {
-              errorMessage = `Server error: ${JSON.stringify(createError.response.data)}`;
             }
+            
             setError(errorMessage);
+            setLoading(false);
+            return;
           }
         }
 
-        if (!userRole) {
-          setError('Unable to determine user role');
-        }
-        
       } catch (error) {
         console.error('❌ Error in authentication flow:', error);
         setError('Failed to authenticate user');
-      } finally {
         setLoading(false);
       }
     };

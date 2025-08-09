@@ -59,61 +59,116 @@ const LandingPage = () => {
     handleSignedInUser();
   }, [isSignedIn, user, navigate]);
 
-  const handleStudentCreation = async () => {
-    if (!user) {
-      console.log('No user found');
+// Only showing the handleStudentCreation function from LandingPage.jsx
+// Replace your existing handleStudentCreation function with this improved version:
+
+const handleStudentCreation = async () => {
+  if (!user) {
+    console.log('No user found');
+    return;
+  }
+
+  console.log('Starting student creation process for user:', user.primaryEmailAddress?.emailAddress);
+
+  try {
+    const email = user.primaryEmailAddress?.emailAddress;
+    const clerkUserId = user.id;
+    const firstName = user.firstName || '';
+    const lastName = user.lastName || '';
+
+    if (!email) {
+      alert('No email found. Please ensure your account has a valid email.');
       return;
     }
 
-    console.log('Starting student creation process for user:', user.primaryEmailAddress?.emailAddress);
+    // First check if student already exists
+    try {
+      console.log('Checking if student exists for email:', email);
+      const existingStudent = await axios.get(`${API_BASE_URL}/api/v1/academic/student/by-email/${email}`);
+      
+      if (existingStudent.data) {
+        console.log('Student already exists, linking with Clerk and navigating');
+        
+        // Link clerk user if not already linked
+        await axios.post(`${API_BASE_URL}/api/v1/academic/student/link-clerk`, {
+          email: email,
+          clerkUserId: clerkUserId
+        });
+        
+        // Set localStorage and navigate
+        localStorage.setItem('userRole', 'student');
+        localStorage.setItem('userEmail', email);
+        localStorage.setItem('clerkUserId', clerkUserId);
+        
+        navigate('/student');
+        return;
+      }
+    } catch (checkError) {
+      if (checkError.response?.status !== 404) {
+        console.error('Error checking existing student:', checkError);
+        alert('Error checking student account. Please try again.');
+        return;
+      }
+      // 404 is expected - student doesn't exist, continue to create
+      console.log('Student does not exist, proceeding with creation');
+    }
 
-    const userData = {
-      first_name: user.firstName || '',
-      last_name: user.lastName || '',
-      email: user.primaryEmailAddress?.emailAddress || '',
-      phone_number: user.primaryPhoneNumber?.phoneNumber || '',
-      address: '',
+    // Create new student - matching your DTO exactly
+    const newStudentData = {
+      clerk_user_id: clerkUserId,
+      first_name: firstName || 'Student',
+      last_name: lastName || 'User',
+      email: email,
+      phone_number: 'Not provided',
+      address: 'Not provided',
       age: 18,
-      password: 'clerk_managed',
-      role: 'student',
-      clerkUserId: user.id
+      password: 'ClerkUser123!',
+      role: 'student'
     };
 
-    try {
-      // Check if student already exists
-      const email = user.primaryEmailAddress?.emailAddress;
-      console.log('Checking if student exists for email:', email);
-      
-      try {
-        const existingStudent = await axios.get(`${API_BASE_URL}/api/v1/academic/student/by-email/${email}`);
-        if (existingStudent.data) {
-          console.log('Student already exists, navigating to student page');
-          // Link clerk user if not already linked
-          await axios.post(`${API_BASE_URL}/api/v1/academic/student/link-clerk`, {
-            email: email,
-            clerkUserId: user.id
-          });
-          navigate('/student');
-          return;
+    console.log('Creating new student with data:', newStudentData);
+    
+    const createResponse = await axios.post(
+      `${API_BASE_URL}/api/v1/academic/student`, 
+      newStudentData,
+      {
+        headers: {
+          'Content-Type': 'application/json'
         }
-      } catch (checkError) {
-        console.log('Student does not exist, will create new student');
       }
+    );
 
-      // Create new student
-      console.log('Creating new student with data:', userData);
-      const createResponse = await axios.post(`${API_BASE_URL}/api/v1/academic/student`, userData);
-      console.log('Student created successfully:', createResponse.data);
+    console.log('Student created successfully:', createResponse.data);
+
+    if (createResponse.status === 200 && createResponse.data) {
+      // Set localStorage
+      localStorage.setItem('userRole', 'student');
+      localStorage.setItem('userEmail', email);
+      localStorage.setItem('clerkUserId', clerkUserId);
       
       console.log('Navigating to student page');
       navigate('/student');
       setShowRoleSelection(false);
-    } catch (error) {
-      console.error('Error in student creation process:', error);
-      console.error('Error details:', error.response?.data);
-      alert(`Error creating student account: ${error.response?.data?.message || error.message}. Please try again.`);
+    } else {
+      throw new Error('Invalid response from server');
     }
-  };
+
+  } catch (error) {
+    console.error('Error in student creation process:', error);
+    
+    let errorMessage = 'Error creating student account. Please try again.';
+    
+    if (error.response?.status === 400) {
+      errorMessage = 'Invalid data provided. Please check your account information.';
+    } else if (error.response?.status === 409) {
+      errorMessage = 'Student account already exists with this email.';
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    }
+    
+    alert(errorMessage);
+  }
+};
 
   const stats = [
     { icon: <Users className="w-6 h-6" />, number: "10,000+", label: "Active Students" },
