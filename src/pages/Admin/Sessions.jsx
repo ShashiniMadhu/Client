@@ -128,9 +128,9 @@ const AllSessions = () => {
     if (!slipLink) return null;
     if (slipLink.startsWith('http')) return slipLink;
     if (slipLink.startsWith('/uploads')) {
-      return `${API_BASE_URL}${slipLink}`;
+      return `${API_BASE_URL}/api/v1/${slipLink}`;
     }
-    return `${API_BASE_URL}/uploads/${slipLink}`;
+    return `${API_BASE_URL}/api/v1/uploads/${slipLink}`;
   };
 
   const PaymentSlipPreview = ({ slipLink, sessionId }) => {

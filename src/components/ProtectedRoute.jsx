@@ -21,6 +21,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
       try {
         const email = user.primaryEmailAddress?.emailAddress;
         const clerkUserId = user.id;
+        const firstName = user.firstName || '';
+        const lastName = user.lastName || '';
         
         if (!email) {
           setError('No email found');
@@ -52,7 +54,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
         try {
           const studentResponse = await axios.get(`${API_BASE_URL}/api/v1/academic/student/by-email/${email}`);
           if (studentResponse.data) {
-            // Link student with Clerk
+            // Link existing student with Clerk
             await axios.post(`${API_BASE_URL}/api/v1/academic/student/link-clerk`, {
               email: email,
               clerkUserId: clerkUserId
@@ -65,10 +67,45 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
             return;
           }
         } catch (studentError) {
-          // Student not found
+          // Student not found, create new student
+          console.log('Student not found, creating new student...');
+          
+          try {
+            // Create new student with Clerk data
+            const newStudentData = {
+              clerk_user_id: clerkUserId,
+              first_name: firstName || 'User',
+              last_name: lastName || 'Name',
+              email: email,
+              phone_number: 'N/A', // Default value
+              address: 'N/A', // Default value
+              age: 18, // Default minimum age
+              password: 'clerk_user', // Default password for Clerk users
+              role: 'student'
+            };
+
+            const createResponse = await axios.post(
+              `${API_BASE_URL}/api/v1/academic/student`, 
+              newStudentData
+            );
+
+            if (createResponse.data) {
+              setUserRole('student');
+              localStorage.setItem('userRole', 'student');
+              localStorage.setItem('userEmail', email);
+              localStorage.setItem('clerkUserId', clerkUserId);
+              setLoading(false);
+              return;
+            }
+          } catch (createError) {
+            console.error('Error creating student:', createError);
+            setError('Failed to create student account');
+          }
         }
 
-        setError('User not found in system');
+        if (!userRole) {
+          setError('Unable to determine user role');
+        }
         
       } catch (error) {
         console.error('Error linking user:', error);
