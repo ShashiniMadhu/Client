@@ -4,6 +4,8 @@ import { useClerk, useUser } from '@clerk/clerk-react';
 import { User } from 'lucide-react';
 import logo from '../assets/logo.png';
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+
 const Header = ({ userType = 'student', userName = 'SkillMentor' }) => {
   const navigate = useNavigate();
   const { signOut } = useClerk();
@@ -20,7 +22,7 @@ const Header = ({ userType = 'student', userName = 'SkillMentor' }) => {
         // Check if this Clerk user is linked to an admin account
         try {
           const email = user.primaryEmailAddress?.emailAddress;
-          const response = await fetch(`http://localhost:8080/api/v1/academic/admin/by-email/${email}`);
+          const response = await fetch(`${API_BASE_URL}/api/v1/academic/admin/by-email/${email}`);
           if (response.ok) {
             setIsAdmin(true);
           }

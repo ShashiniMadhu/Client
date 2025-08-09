@@ -3,6 +3,8 @@ import { useUser } from '@clerk/clerk-react';
 import { Navigate } from 'react-router-dom';
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, isLoaded, isSignedIn } = useUser();
   const [userRole, setUserRole] = useState(null);
@@ -28,10 +30,10 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
         // Check if user is admin first
         try {
-          const adminResponse = await axios.get(`http://localhost:8080/api/v1/academic/admin/by-email/${email}`);
+          const adminResponse = await axios.get(`${API_BASE_URL}/api/v1/academic/admin/by-email/${email}`);
           if (adminResponse.data) {
             // Link admin with Clerk
-            await axios.post('http://localhost:8080/api/v1/academic/admin/link-clerk', {
+            await axios.post(`${API_BASE_URL}/api/v1/academic/admin/link-clerk`, {
               email: email,
               clerkUserId: clerkUserId
             });
@@ -48,10 +50,10 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
         // Check if user is student
         try {
-          const studentResponse = await axios.get(`http://localhost:8080/api/v1/academic/student/by-email/${email}`);
+          const studentResponse = await axios.get(`${API_BASE_URL}/api/v1/academic/student/by-email/${email}`);
           if (studentResponse.data) {
             // Link student with Clerk
-            await axios.post('http://localhost:8080/api/v1/academic/student/link-clerk', {
+            await axios.post(`${API_BASE_URL}/api/v1/academic/student/link-clerk`, {
               email: email,
               clerkUserId: clerkUserId
             });

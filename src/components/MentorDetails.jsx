@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, Mail, Phone, MapPin, Briefcase, Award, BookOpen, DollarSign, Loader, AlertCircle } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+
 const MentorProfileModal = ({ mentorId, isOpen, onClose }) => {
   const [mentorData, setMentorData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -18,7 +20,7 @@ const MentorProfileModal = ({ mentorId, isOpen, onClose }) => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`http://localhost:8080/api/v1/academic/mentor/${mentorId}`);
+      const response = await fetch(`${API_BASE_URL}/api/v1/academic/mentor/${mentorId}`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch mentor details: ${response.status}`);

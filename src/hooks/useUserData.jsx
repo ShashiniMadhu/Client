@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+
 export const useUserData = () => {
   const { user, isSignedIn } = useUser();
   const [userData, setUserData] = useState(null);
@@ -30,8 +32,8 @@ export const useUserData = () => {
 
         // Fetch user data based on role
         const endpoint = role === 'student' 
-          ? `http://localhost:8080/api/v1/academic/student/by-clerk/${clerkUserId}`
-          : `http://localhost:8080/api/v1/academic/admin/by-clerk/${clerkUserId}`;
+          ? `${API_BASE_URL}/api/v1/academic/student/by-clerk/${clerkUserId}`
+          : `${API_BASE_URL}/api/v1/academic/admin/by-clerk/${clerkUserId}`;
 
         const response = await axios.get(endpoint);
         setUserData(response.data);
