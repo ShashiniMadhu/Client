@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useClerk, useUser } from '@clerk/clerk-react';
 import {
   Users,
@@ -22,10 +22,11 @@ const Header = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   
   const navigate = useNavigate();
+  const location = useLocation();
   const { signOut } = useClerk();
   const { user } = useUser();
 
-  // Navigation items
+  // Navigation items - using relative paths for admin routes
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: Calendar },
     { name: 'Sessions', href: '/admin/sessions', icon: Calendar },
@@ -34,9 +35,24 @@ const Header = () => {
     { name: 'Students', href: '/admin/students', icon: GraduationCap },
   ];
 
+  // Function to check if current route is active
+  const isActiveRoute = (href) => {
+    if (href === '/admin') {
+      return location.pathname === '/admin' || location.pathname === '/admin/';
+    }
+    return location.pathname === href;
+  };
+
   // User info
   const adminName = user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Admin';
   const adminEmail = user?.primaryEmailAddress?.emailAddress;
+
+  // Navigation handler
+  const handleNavigation = (href) => {
+    setIsProfileOpen(false);
+    setIsMobileMenuOpen(false);
+    navigate(href);
+  };
 
   // Logout handler
   const handleLogoutConfirm = async () => {
@@ -53,6 +69,9 @@ const Header = () => {
       localStorage.removeItem('userType');
       localStorage.removeItem('userData');
       localStorage.removeItem('adminSession');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('clerkUserId');
       sessionStorage.clear();
       
       setShowConfirmLogout(false);
@@ -92,37 +111,44 @@ const Header = () => {
           
           {/* Logo Section */}
           <div className="flex items-center space-x-6">
-            <img 
-              src={logo} 
-              alt="SkillMentor Logo" 
-              className="w-12 h-12 rounded-lg object-cover shadow-sm" 
-            />
-            <div className="flex flex-col leading-tight">
-              <h1 className="text-3xl font-extrabold bg-gradient-to-r from-[#450063] via-[#fd59ca] to-[#03b2ed] bg-clip-text text-transparent tracking-tight">
-                Skill<span className="text-[#280120]">Mentor</span>
-              </h1>
-              <p className="text-sm font-medium italic text-[#450063]">
-                Admin Panel
-                <span className="ml-2 text-xs bg-[#450063]/10 text-[#450063] px-2 py-1 rounded-full">
-                  Administrator
-                </span>
-              </p>
-            </div>
+            <Link to="/admin" className="flex items-center space-x-6">
+              <img 
+                src={logo} 
+                alt="SkillMentor Logo" 
+                className="w-12 h-12 rounded-lg object-cover shadow-sm" 
+              />
+              <div className="flex flex-col leading-tight">
+                <h1 className="text-3xl font-extrabold bg-gradient-to-r from-[#450063] via-[#fd59ca] to-[#03b2ed] bg-clip-text text-transparent tracking-tight">
+                  Skill<span className="text-[#280120]">Mentor</span>
+                </h1>
+                <p className="text-sm font-medium italic text-[#450063]">
+                  Admin Panel
+                  <span className="ml-2 text-xs bg-[#450063]/10 text-[#450063] px-2 py-1 rounded-full">
+                    Administrator
+                  </span>
+                </p>
+              </div>
+            </Link>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-6 mx-12">
             {navigation.map((item) => {
               const Icon = item.icon;
+              const isActive = isActiveRoute(item.href);
               return (
-                <a
+                <Link
                   key={item.name}
-                  href={item.href}
-                  className="flex items-center space-x-3 px-5 py-3 font-medium rounded-lg transition-all duration-200 text-gray-600 hover:text-[#450063] hover:bg-[#450063]/10"
+                  to={item.href}
+                  className={`flex items-center space-x-3 px-5 py-3 font-medium rounded-lg transition-all duration-200 ${
+                    isActive
+                      ? 'text-[#450063] bg-[#450063]/10 shadow-sm'
+                      : 'text-gray-600 hover:text-[#450063] hover:bg-[#450063]/10'
+                  }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span>{item.name}</span>
-                </a>
+                </Link>
               );
             })}
           </nav>
@@ -167,21 +193,21 @@ const Header = () => {
                     <div className="text-xs text-[#450063] font-medium mt-1">Administrator</div>
                   </div>
                   
-                  <a 
-                    href="/profile" 
-                    className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#450063]/5 hover:text-[#450063] transition-colors"
+                  <button
+                    onClick={() => handleNavigation('/admin/profile')}
+                    className="w-full text-left flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#450063]/5 hover:text-[#450063] transition-colors"
                   >
                     <User className="w-4 h-4" />
                     <span>Profile</span>
-                  </a>
+                  </button>
                   
-                  <a 
-                    href="/settings" 
-                    className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#450063]/5 hover:text-[#450063] transition-colors"
+                  <button
+                    onClick={() => handleNavigation('/admin/settings')}
+                    className="w-full text-left flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-[#450063]/5 hover:text-[#450063] transition-colors"
                   >
                     <Shield className="w-4 h-4" />
                     <span>Settings</span>
-                  </a>
+                  </button>
                   
                   <hr className="my-2 border-gray-200" />
                   
@@ -250,39 +276,42 @@ const Header = () => {
             <div className="space-y-1 mb-4">
               {navigation.map((item) => {
                 const Icon = item.icon;
+                const isActive = isActiveRoute(item.href);
                 return (
-                  <a
+                  <Link
                     key={item.name}
-                    href={item.href}
-                    className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 text-gray-600 hover:text-[#450063] hover:bg-[#450063]/10"
+                    to={item.href}
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 font-medium ${
+                      isActive
+                        ? 'text-[#450063] bg-[#450063]/10'
+                        : 'text-gray-600 hover:text-[#450063] hover:bg-[#450063]/10'
+                    }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <Icon className="w-5 h-5" />
-                    <span className="font-medium">{item.name}</span>
-                  </a>
+                    <span>{item.name}</span>
+                  </Link>
                 );
               })}
             </div>
 
             {/* Mobile Profile Links */}
             <div className="pt-4 border-t border-gray-200 space-y-1">
-              <a
-                href="/profile"
-                className="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:text-[#450063] hover:bg-[#450063]/10 transition-all duration-200"
-                onClick={() => setIsMobileMenuOpen(false)}
+              <button
+                onClick={() => handleNavigation('/admin/profile')}
+                className="w-full text-left flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:text-[#450063] hover:bg-[#450063]/10 transition-all duration-200"
               >
                 <User className="w-5 h-5" />
                 <span className="font-medium">Profile</span>
-              </a>
+              </button>
               
-              <a
-                href="/settings"
-                className="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:text-[#450063] hover:bg-[#450063]/10 transition-all duration-200"
-                onClick={() => setIsMobileMenuOpen(false)}
+              <button
+                onClick={() => handleNavigation('/admin/settings')}
+                className="w-full text-left flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:text-[#450063] hover:bg-[#450063]/10 transition-all duration-200"
               >
                 <Shield className="w-5 h-5" />
                 <span className="font-medium">Settings</span>
-              </a>
+              </button>
               
               <button
                 onClick={() => setShowConfirmLogout(true)}
