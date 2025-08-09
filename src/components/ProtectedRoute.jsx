@@ -81,7 +81,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
               address: 'N/A', // Default value
               age: 18, // Default minimum age
               password: 'clerk_user', // Default password for Clerk users
-              role: 'student'
+              role: 'STUDENT'
             };
 
             const createResponse = await axios.post(

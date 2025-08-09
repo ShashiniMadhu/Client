@@ -183,6 +183,7 @@ const LandingPage = () => {
         }
       `}</style>
       {/* Header */}
+      {/* Header */}
       <header className="bg-white shadow-sm border-b sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
@@ -201,7 +202,12 @@ const LandingPage = () => {
             <div className="flex items-center space-x-3">
               {isSignedIn ? (
                 <div className="flex items-center space-x-4">
-                  <span className="text-gray-700">Welcome, {user?.firstName}!</span>
+                  <div className="text-right">
+                    <p className="text-gray-700 font-medium">
+                      Welcome, <span className="text-[#450063] font-semibold">{user?.firstName || 'User'}!</span>
+                    </p>
+                    <p className="text-xs text-gray-500">Good to see you back</p>
+                  </div>
                   <UserButton afterSignOutUrl="/" />
                 </div>
               ) : (
