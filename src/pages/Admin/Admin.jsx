@@ -12,7 +12,8 @@ function Admin() {
     <div>
         <Header/>
     <Routes>
-        <Route index element={<Navigate to="dashboard" replace />} />        <Route path="sessions" element={<Sessions />} />
+        <Route index element={<Dashboard />} />
+        <Route path="sessions" element={<Sessions />} />
         <Route path="classes" element={<Classes />} />
         <Route path="mentors" element={<Mentors />} />
         <Route path="students" element={<Students />} />
