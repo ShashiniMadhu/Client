@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Users, BookOpen, User, Mail, Phone, MapPin, Sparkles, TrendingUp, Check, X, ExternalLink } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+
 const MentorSessions = () => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,7 +16,7 @@ const MentorSessions = () => {
   const fetchSessions = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8080/api/v1/academic/mentor/${mentorId}/sessions`);
+      const response = await fetch(`${API_BASE_URL}/api/v1/academic/mentor/${mentorId}/sessions`);
       if (!response.ok) throw new Error('Failed to fetch sessions');
       const data = await response.json();
       setSessions(data);

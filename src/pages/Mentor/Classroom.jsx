@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Search, User, Users, Award, Mail, Phone, Eye, GraduationCap } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+
 const AllClassrooms = () => {
   const [classrooms, setClassrooms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,7 +15,7 @@ const AllClassrooms = () => {
 
   const fetchClassrooms = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/v1/academic/classroom');
+      const response = await fetch(`${API_BASE_URL}/api/v1/academic/classroom`);
       const data = await response.json();
       setClassrooms(data);
     } catch (error) {

@@ -3,6 +3,8 @@ import { Calendar, Users, Star, Clock, ChevronRight, ChevronLeft, X, User, Brief
 import { useUserData } from '../../hooks/useUserData';
 import hero from '../../assets/hero.jpeg'; // Import hero image
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+
 // Enhanced SessionCard Component with improved styling
 const SessionCard = ({ sessionData }) => {
   const formatDate = (dateString) => {
@@ -181,7 +183,7 @@ const SessionsPage = () => {
         
         console.log('Fetching sessions for student ID:', studentId);
         
-        const response = await fetch(`http://localhost:8080/api/v1/academic/${studentId}/sessions`);
+        const response = await fetch(`${API_BASE_URL}/api/v1/academic/${studentId}/sessions`);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch sessions: ${response.status} ${response.statusText}`);

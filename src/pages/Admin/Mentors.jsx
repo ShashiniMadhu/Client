@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { User, Search, Mail, Phone, BookOpen, Calendar, DollarSign, Eye, Edit, Trash2, Users, X, Loader, GraduationCap, MapPin, Lock } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+
 const AllMentors = () => {
   const [mentors, setMentors] = useState([]);
   const [sessions, setSessions] = useState([]);
@@ -19,8 +21,8 @@ const AllMentors = () => {
   const fetchData = async () => {
     try {
       const [mentorsRes, sessionsRes] = await Promise.all([
-        fetch('http://localhost:8080/api/v1/academic/mentor'),
-        fetch('http://localhost:8080/api/v1/academic/session')
+        fetch(`${API_BASE_URL}/api/v1/academic/mentor`),
+        fetch(`${API_BASE_URL}/api/v1/academic/session`)
       ]);
       
       const [mentorsData, sessionsData] = await Promise.all([
@@ -61,7 +63,7 @@ const AllMentors = () => {
 
     setOperationLoading(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/academic/mentor/${showDeletePopup.id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/academic/mentor/${showDeletePopup.id}`, {
         method: 'DELETE'
       });
       if (response.ok) {
@@ -87,7 +89,7 @@ const AllMentors = () => {
     
     setOperationLoading(true);
     try {
-      const response = await fetch('http://localhost:8080/api/v1/academic/mentor', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/academic/mentor`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editedMentor),

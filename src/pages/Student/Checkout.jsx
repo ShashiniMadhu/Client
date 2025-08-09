@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Upload, Calendar, User, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+
 const CheckoutPage = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
@@ -57,7 +59,7 @@ const CheckoutPage = () => {
     formData.append('file', file);
 
     try {
-      const uploadResponse = await fetch('http://localhost:8080/api/v1/academic/upload', {
+      const uploadResponse = await fetch(`${API_BASE_URL}/api/v1/academic/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -91,7 +93,7 @@ const CheckoutPage = () => {
 
       // Update session with slip link
       const response = await fetch(
-        `http://localhost:8080/api/v1/academic/session/${sessionData.sessionId}/slip-link`,
+        `${API_BASE_URL}/api/v1/academic/session/${sessionData.sessionId}/slip-link`,
         {
           method: 'PATCH',
           headers: {

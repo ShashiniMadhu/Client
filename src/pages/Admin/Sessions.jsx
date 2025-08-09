@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Search, Clock, User, GraduationCap, BookOpen, Eye, CheckCircle, XCircle, AlertCircle, Link, ExternalLink, Check, X, FileText, Image, Download, Loader, Star, DollarSign, Briefcase, Mail } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+
 const AllSessions = () => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,7 +20,7 @@ const AllSessions = () => {
 
   const fetchSessions = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/v1/academic/session');
+      const response = await fetch(`${API_BASE_URL}/api/v1/academic/session`);
       const data = await response.json();
       setSessions(data);
     } catch (error) {
@@ -32,7 +34,7 @@ const AllSessions = () => {
     try {
       setActionLoading(prev => ({ ...prev, [sessionId]: status }));
       
-      let url = `http://localhost:8080/api/v1/academic/session/${sessionId}/status?status=${status}`;
+      let url = `${API_BASE_URL}/api/v1/academic/session/${sessionId}/status?status=${status}`;
       if (sessionLink) {
         url += `&sessionLink=${encodeURIComponent(sessionLink)}`;
       }
@@ -126,9 +128,9 @@ const AllSessions = () => {
     if (!slipLink) return null;
     if (slipLink.startsWith('http')) return slipLink;
     if (slipLink.startsWith('/uploads')) {
-      return `http://localhost:8080${slipLink}`;
+      return `${API_BASE_URL}${slipLink}`;
     }
-    return `http://localhost:8080/uploads/${slipLink}`;
+    return `${API_BASE_URL}/uploads/${slipLink}`;
   };
 
   const PaymentSlipPreview = ({ slipLink, sessionId }) => {

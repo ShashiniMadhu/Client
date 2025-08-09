@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { User, Search, Mail, Phone, BookOpen, Calendar, DollarSign, Eye, Edit, Trash2, Users, X, Loader, GraduationCap, MapPin } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+
 const AllStudents = () => {
   const [students, setStudents] = useState([]);
   const [sessions, setSessions] = useState([]);
@@ -19,8 +21,8 @@ const AllStudents = () => {
   const fetchData = async () => {
     try {
       const [studentsRes, sessionsRes] = await Promise.all([
-        fetch('http://localhost:8080/api/v1/academic/student'),
-        fetch('http://localhost:8080/api/v1/academic/session')
+        fetch(`${API_BASE_URL}/api/v1/academic/student`),
+        fetch(`${API_BASE_URL}/api/v1/academic/session`)
       ]);
       
       const [studentsData, sessionsData] = await Promise.all([
@@ -62,7 +64,7 @@ const AllStudents = () => {
 
     setOperationLoading(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/academic/student/${showDeletePopup.id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/academic/student/${showDeletePopup.id}`, {
         method: 'DELETE'
       });
       if (response.ok) {
@@ -88,7 +90,7 @@ const AllStudents = () => {
     
     setOperationLoading(true);
     try {
-      const response = await fetch('http://localhost:8080/api/v1/academic/student', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/academic/student`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editedStudent),

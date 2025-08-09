@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+
 const MentorProfile = () => {
   const mentorId = 6; // hardcoded for now
   const [mentor, setMentor] = useState(null);
@@ -10,7 +12,7 @@ const MentorProfile = () => {
   useEffect(() => {
     const fetchMentor = async () => {
       try {
-        const res = await axios.get(`http://localhost:8080/api/v1/academic/mentor/${mentorId}`);
+        const res = await axios.get(`${API_BASE_URL}/api/v1/academic/mentor/${mentorId}`);
         setMentor(res.data);
         setLoading(false);
       } catch (error) {

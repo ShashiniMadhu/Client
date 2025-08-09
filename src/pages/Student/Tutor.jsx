@@ -7,6 +7,8 @@ import hero from '../../assets/hero.jpeg';
 import MentorProfileModal from '../../components/MentorDetails';
 import ClassCard from './ClassCard';
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+
 const TutoePage = () => {
   const { userData, userRole, loading: userLoading, error: userError } = useUserData();
   const navigate = useNavigate();
@@ -30,7 +32,7 @@ const TutoePage = () => {
         setLoading(true);
         setError(null);
         
-        const response = await fetch('http://localhost:8080/api/v1/academic/classroom');
+        const response = await fetch(`${API_BASE_URL}/api/v1/academic/classroom`);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch classes: ${response.status} ${response.statusText}`);
@@ -176,7 +178,7 @@ const TutoePage = () => {
       };
 
       // Make API call to create session
-      const response = await fetch('http://localhost:8080/api/v1/academic/session', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/academic/session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

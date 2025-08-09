@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { User, Mail, Phone, MapPin, Calendar, Edit3, Trash2, Save, X, AlertCircle, Loader, CheckCircle } from 'lucide-react';
 import { useUserData } from '../../hooks/useUserData';
-import hero from '../../assets/hero.jpeg';
+
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
 
 const StudentProfile = () => {
   const { userData, userRole, loading: userLoading, error: userError } = useUserData();
@@ -38,7 +39,7 @@ const StudentProfile = () => {
         
         console.log('Fetching student data for ID:', studentId);
         
-        const response = await fetch(`http://localhost:8080/api/v1/academic/student/${studentId}`);
+        const response = await fetch(`${API_BASE_URL}/api/v1/academic/student/${studentId}`);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch student data: ${response.status} ${response.statusText}`);
@@ -64,7 +65,7 @@ const StudentProfile = () => {
 
   const handleUpdate = async () => {
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/academic/student`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/academic/student`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -96,7 +97,7 @@ const StudentProfile = () => {
     try {
       const studentId = userData.student_id;
       
-      const response = await fetch(`http://localhost:8080/api/v1/academic/student/${studentId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/academic/student/${studentId}`, {
         method: 'DELETE',
       });
       

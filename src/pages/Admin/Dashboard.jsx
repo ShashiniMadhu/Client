@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { User, Users, Plus, Check, X, BookOpen, UserCheck, Sparkles, TrendingUp, Award, Star, Calendar, Mail, Phone, MapPin, GraduationCap, Briefcase, DollarSign, ArrowRight, Building2, Clock, BarChart3 } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+
 const AdminPortal = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [mentors, setMentors] = useState([]);
@@ -36,7 +38,7 @@ const AdminPortal = () => {
   const fetchMentors = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8080/api/v1/academic/mentor');
+      const response = await fetch(`${API_BASE_URL}/api/v1/academic/mentor`);
       if (response.ok) {
         const data = await response.json();
         setMentors(data);
@@ -53,7 +55,7 @@ const AdminPortal = () => {
   const handleMentorSubmit = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8080/api/v1/academic/mentor', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/academic/mentor`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -95,7 +97,7 @@ const AdminPortal = () => {
   const handleClassroomSubmit = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8080/api/v1/academic/classroom', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/academic/classroom`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

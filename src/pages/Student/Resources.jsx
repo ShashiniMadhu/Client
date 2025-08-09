@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import hero from '../../assets/hero.jpeg';
 
+
 const VideoResources = () => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');

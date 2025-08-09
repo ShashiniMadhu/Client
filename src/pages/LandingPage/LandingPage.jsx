@@ -7,6 +7,8 @@ import axios from 'axios';
 import logo from '../../assets/logo.png'; 
 import hero from '../../assets/hero.jpeg'; 
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+
 const LandingPage = () => {
   const { user, isSignedIn } = useUser();
   const navigate = useNavigate();
@@ -21,9 +23,9 @@ const LandingPage = () => {
           
           // Check admin
           try {
-            const adminResponse = await axios.get(`http://localhost:8080/api/v1/academic/admin/by-email/${email}`);
+            const adminResponse = await axios.get(`${API_BASE_URL}/api/v1/academic/admin/by-email/${email}`);
             if (adminResponse.data) {
-              await axios.post('http://localhost:8080/api/v1/academic/admin/link-clerk', {
+              await axios.post(`${API_BASE_URL}/api/v1/academic/admin/link-clerk`, {
                 email: email,
                 clerkUserId: user.id
               });
@@ -34,9 +36,9 @@ const LandingPage = () => {
 
           // Check student
           try {
-            const studentResponse = await axios.get(`http://localhost:8080/api/v1/academic/student/by-email/${email}`);
+            const studentResponse = await axios.get(`${API_BASE_URL}/api/v1/academic/student/by-email/${email}`);
             if (studentResponse.data) {
-              await axios.post('http://localhost:8080/api/v1/academic/student/link-clerk', {
+              await axios.post(`${API_BASE_URL}/api/v1/academic/student/link-clerk`, {
                 email: email,
                 clerkUserId: user.id
               });
@@ -83,11 +85,11 @@ const LandingPage = () => {
       console.log('Checking if student exists for email:', email);
       
       try {
-        const existingStudent = await axios.get(`http://localhost:8080/api/v1/academic/student/by-email/${email}`);
+        const existingStudent = await axios.get(`${API_BASE_URL}/api/v1/academic/student/by-email/${email}`);
         if (existingStudent.data) {
           console.log('Student already exists, navigating to student page');
           // Link clerk user if not already linked
-          await axios.post('http://localhost:8080/api/v1/academic/student/link-clerk', {
+          await axios.post(`${API_BASE_URL}/api/v1/academic/student/link-clerk`, {
             email: email,
             clerkUserId: user.id
           });
@@ -100,7 +102,7 @@ const LandingPage = () => {
 
       // Create new student
       console.log('Creating new student with data:', userData);
-      const createResponse = await axios.post('http://localhost:8080/api/v1/academic/student', userData);
+      const createResponse = await axios.post(`${API_BASE_URL}/api/v1/academic/student`, userData);
       console.log('Student created successfully:', createResponse.data);
       
       console.log('Navigating to student page');
