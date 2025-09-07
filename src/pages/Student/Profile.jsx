@@ -12,34 +12,49 @@ const StudentProfile = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState('');
-  const [statusType, setStatusType] = useState(''); // 'success' or 'error'
+  const [statusType, setStatusType] = useState('');
 
-  // Fetch student data based on authenticated user
+  // Helper method to clear status after delay
+  const clearStatus = (delay = 3000) => {
+    setTimeout(() => {
+      setStatus('');
+      setStatusType('');
+    }, delay);
+  };
+
+  // Helper method to set status
+  const setStatusMessage = (message, type) => {
+    setStatus(message);
+    setStatusType(type);
+  };
+
+  // Helper method to handle redirects
+  const redirectTo = (path, delay = 0) => {
+    setTimeout(() => {
+      window.location.href = path;
+    }, delay);
+  };
+
+  // Fetch student data
   useEffect(() => {
     const fetchStudent = async () => {
       if (userLoading) return;
       
       if (userError) {
-        setStatus(`Authentication error: ${userError}`);
-        setStatusType('error');
+        setStatusMessage(`Authentication error: ${userError}`, 'error');
         setLoading(false);
         return;
       }
       
       if (!userData || userRole !== 'student') {
-        setStatus('Only students can access this profile');
-        setStatusType('error');
+        setStatusMessage('Only students can access this profile', 'error');
         setLoading(false);
         return;
       }
 
       try {
         setLoading(true);
-        const studentId = userData.student_id;
-        
-        console.log('Fetching student data for ID:', studentId);
-        
-        const response = await fetch(`${API_BASE_URL}/api/v1/academic/student/${studentId}`);
+        const response = await fetch(`${API_BASE_URL}/api/v1/academic/student/${userData.student_id}`);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch student data: ${response.status} ${response.statusText}`);
@@ -50,8 +65,7 @@ const StudentProfile = () => {
         setLoading(false);
       } catch (err) {
         console.error('Failed to fetch student data:', err);
-        setStatus('Failed to load profile.');
-        setStatusType('error');
+        setStatusMessage('Failed to load profile.', 'error');
         setLoading(false);
       }
     };
@@ -67,9 +81,7 @@ const StudentProfile = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/academic/student`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(student),
       });
       
@@ -77,27 +89,18 @@ const StudentProfile = () => {
         throw new Error(`Update failed: ${response.status} ${response.statusText}`);
       }
       
-      setStatus('Profile updated successfully!');
-      setStatusType('success');
+      setStatusMessage('Profile updated successfully!', 'success');
       setEditMode(false);
-      
-      // Clear status after 3 seconds
-      setTimeout(() => {
-        setStatus('');
-        setStatusType('');
-      }, 3000);
+      clearStatus();
     } catch (err) {
       console.error('Update failed:', err);
-      setStatus('Failed to update profile.');
-      setStatusType('error');
+      setStatusMessage('Failed to update profile.', 'error');
     }
   };
 
   const handleDelete = async () => {
     try {
-      const studentId = userData.student_id;
-      
-      const response = await fetch(`${API_BASE_URL}/api/v1/academic/student/${studentId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/academic/student/${userData.student_id}`, {
         method: 'DELETE',
       });
       
@@ -105,118 +108,114 @@ const StudentProfile = () => {
         throw new Error(`Delete failed: ${response.status} ${response.statusText}`);
       }
       
-      setStatus('Account deleted successfully!');
-      setStatusType('success');
-      
-      // Redirect after successful deletion
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 2000);
+      setStatusMessage('Account deleted successfully!', 'success');
+      redirectTo('/', 2000);
     } catch (err) {
       console.error('Delete failed:', err);
-      setStatus('Failed to delete account.');
-      setStatusType('error');
+      setStatusMessage('Failed to delete account.', 'error');
     }
     setShowDeleteConfirm(false);
   };
 
-  // Show loading state while user data is being fetched
-  if (userLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex justify-center items-center">
-        <div className="text-center">
-          <Loader className="w-12 h-12 text-[#450063] animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Loading user data...</p>
+  // Render error/loading states
+  const renderErrorState = (icon, title, message, buttonText, buttonAction, bgColor = 'red') => (
+    <div className="min-h-screen bg-gray-50 flex justify-center items-center">
+      <div className="max-w-2xl mx-auto">
+        <div className={`bg-${bgColor}-50 border border-${bgColor}-200 rounded-lg p-8 text-center`}>
+          {icon}
+          <h3 className={`text-2xl font-bold text-${bgColor}-800 mb-4`}>{title}</h3>
+          <p className={`text-${bgColor}-600 mb-6`}>{message}</p>
+          <button 
+            onClick={buttonAction}
+            className={`bg-${bgColor}-600 hover:bg-${bgColor}-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300`}
+          >
+            {buttonText}
+          </button>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 
-  // Show error if user authentication failed
+  const renderLoadingState = (message) => (
+    <div className="min-h-screen bg-gray-50 flex justify-center items-center">
+      <div className="text-center">
+        <Loader className="w-12 h-12 text-[#450063] animate-spin mx-auto mb-4" />
+        <p className="text-gray-600 text-lg">{message}</p>
+      </div>
+    </div>
+  );
+
+  // Render form field
+  const renderField = (name, label, icon, type = 'text', disabled = false, rows = null) => {
+    const inputClass = `w-full px-4 py-3 border rounded-lg transition-all duration-300 ${
+      editMode && !disabled
+        ? 'bg-white border-gray-300 focus:border-[#450063] focus:ring-2 focus:ring-[#450063]/20' 
+        : 'bg-gray-50 border-gray-200 text-gray-600'
+    }`;
+
+    const InputComponent = rows ? 'textarea' : 'input';
+    
+    return (
+      <div className={rows ? 'mt-6' : ''}>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          {icon && <span className="w-4 h-4 inline mr-2">{icon}</span>}
+          {label}
+        </label>
+        <InputComponent
+          type={!rows ? type : undefined}
+          rows={rows}
+          name={name}
+          value={student[name] || ''}
+          onChange={handleChange}
+          disabled={!editMode || disabled}
+          className={`${inputClass}${rows ? ' resize-none' : ''}`}
+        />
+      </div>
+    );
+  };
+
+  // Early returns for different states
+  if (userLoading) return renderLoadingState('Loading user data...');
+  
   if (userError || !userData) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex justify-center items-center">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-8 text-center">
-            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-red-800 mb-4">Authentication Error</h3>
-            <p className="text-red-600 mb-6">
-              {userError || 'Unable to load user data. Please try logging in again.'}
-            </p>
-            <button 
-              onClick={() => window.location.href = '/'}
-              className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300"
-            >
-              Return to Home
-            </button>
-          </div>
-        </div>
-      </div>
+    return renderErrorState(
+      <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />,
+      'Authentication Error',
+      userError || 'Unable to load user data. Please try logging in again.',
+      'Return to Home',
+      () => redirectTo('/')
     );
   }
 
-  // Show error if user is not a student
   if (userRole !== 'student') {
-    return (
-      <div className="min-h-screen bg-gray-50 flex justify-center items-center">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center">
-            <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-yellow-800 mb-4">Access Restricted</h3>
-            <p className="text-yellow-600 mb-6">
-              Profile page is only available for students. Your current role is: {userRole}
-            </p>
-            <button 
-              onClick={() => window.location.href = '/'}
-              className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300"
-            >
-              Return to Home
-            </button>
-          </div>
-        </div>
-      </div>
+    return renderErrorState(
+      <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />,
+      'Access Restricted',
+      `Profile page is only available for students. Your current role is: ${userRole}`,
+      'Return to Home',
+      () => redirectTo('/'),
+      'yellow'
     );
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex justify-center items-center">
-        <div className="text-center">
-          <Loader className="w-12 h-12 text-[#450063] animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return renderLoadingState('Loading profile...');
 
   if (!student) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex justify-center items-center">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-8 text-center">
-            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-red-800 mb-4">Profile Not Found</h3>
-            <p className="text-red-600 mb-6">
-              {status || 'Unable to load your profile. Please try again.'}
-            </p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      </div>
+    return renderErrorState(
+      <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />,
+      'Profile Not Found',
+      status || 'Unable to load your profile. Please try again.',
+      'Retry',
+      () => window.location.reload()
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Profile Section */}
       <div className="bg-white py-16">
         <div className="container mx-auto px-6">
           <div className="max-w-4xl mx-auto">
+
             {/* Status Message */}
             {status && (
               <div className={`mb-6 p-4 rounded-lg border ${
@@ -263,140 +262,16 @@ const StudentProfile = () => {
               {/* Profile Form */}
               <div className="p-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* First Name */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <User className="w-4 h-4 inline mr-2" />
-                      First Name
-                    </label>
-                    <input
-                      type="text"
-                      name="first_name"
-                      value={student.first_name || ''}
-                      onChange={handleChange}
-                      disabled={!editMode}
-                      className={`w-full px-4 py-3 border rounded-lg transition-all duration-300 ${
-                        editMode 
-                          ? 'bg-white border-gray-300 focus:border-[#450063] focus:ring-2 focus:ring-[#450063]/20' 
-                          : 'bg-gray-50 border-gray-200 text-gray-600'
-                      }`}
-                    />
-                  </div>
-
-                  {/* Last Name */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <User className="w-4 h-4 inline mr-2" />
-                      Last Name
-                    </label>
-                    <input
-                      type="text"
-                      name="last_name"
-                      value={student.last_name || ''}
-                      onChange={handleChange}
-                      disabled={!editMode}
-                      className={`w-full px-4 py-3 border rounded-lg transition-all duration-300 ${
-                        editMode 
-                          ? 'bg-white border-gray-300 focus:border-[#450063] focus:ring-2 focus:ring-[#450063]/20' 
-                          : 'bg-gray-50 border-gray-200 text-gray-600'
-                      }`}
-                    />
-                  </div>
-
-                  {/* Email */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <Mail className="w-4 h-4 inline mr-2" />
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={student.email || ''}
-                      onChange={handleChange}
-                      disabled={!editMode}
-                      className={`w-full px-4 py-3 border rounded-lg transition-all duration-300 ${
-                        editMode 
-                          ? 'bg-white border-gray-300 focus:border-[#450063] focus:ring-2 focus:ring-[#450063]/20' 
-                          : 'bg-gray-50 border-gray-200 text-gray-600'
-                      }`}
-                    />
-                  </div>
-
-                  {/* Phone Number */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <Phone className="w-4 h-4 inline mr-2" />
-                      Phone Number
-                    </label>
-                    <input
-                      type="text"
-                      name="phone_number"
-                      value={student.phone_number || ''}
-                      onChange={handleChange}
-                      disabled={!editMode}
-                      className={`w-full px-4 py-3 border rounded-lg transition-all duration-300 ${
-                        editMode 
-                          ? 'bg-white border-gray-300 focus:border-[#450063] focus:ring-2 focus:ring-[#450063]/20' 
-                          : 'bg-gray-50 border-gray-200 text-gray-600'
-                      }`}
-                    />
-                  </div>
-
-                  {/* Age */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <Calendar className="w-4 h-4 inline mr-2" />
-                      Age
-                    </label>
-                    <input
-                      type="number"
-                      name="age"
-                      value={student.age || ''}
-                      onChange={handleChange}
-                      disabled={!editMode}
-                      className={`w-full px-4 py-3 border rounded-lg transition-all duration-300 ${
-                        editMode 
-                          ? 'bg-white border-gray-300 focus:border-[#450063] focus:ring-2 focus:ring-[#450063]/20' 
-                          : 'bg-gray-50 border-gray-200 text-gray-600'
-                      }`}
-                    />
-                  </div>
-
-                  {/* Role */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Role
-                    </label>
-                    <input
-                      type="text"
-                      name="role"
-                      value={student.role || ''}
-                      disabled={true}
-                      className="w-full px-4 py-3 border rounded-lg bg-gray-50 border-gray-200 text-gray-600"
-                    />
-                  </div>
+                  {renderField('first_name', 'First Name', <User className="w-4 h-4" />)}
+                  {renderField('last_name', 'Last Name', <User className="w-4 h-4" />)}
+                  {renderField('email', 'Email Address', <Mail className="w-4 h-4" />, 'email')}
+                  {renderField('phone_number', 'Phone Number', <Phone className="w-4 h-4" />)}
+                  {renderField('age', 'Age', <Calendar className="w-4 h-4" />, 'number')}
+                  {renderField('role', 'Role', null, 'text', true)}
                 </div>
 
                 {/* Address - Full Width */}
-                <div className="mt-6">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    <MapPin className="w-4 h-4 inline mr-2" />
-                    Address
-                  </label>
-                  <textarea
-                    name="address"
-                    rows="3"
-                    value={student.address || ''}
-                    onChange={handleChange}
-                    disabled={!editMode}
-                    className={`w-full px-4 py-3 border rounded-lg transition-all duration-300 resize-none ${
-                      editMode 
-                        ? 'bg-white border-gray-300 focus:border-[#450063] focus:ring-2 focus:ring-[#450063]/20' 
-                        : 'bg-gray-50 border-gray-200 text-gray-600'
-                    }`}
-                  />
-                </div>
+                {renderField('address', 'Address', <MapPin className="w-4 h-4" />, 'text', false, 3)}
 
                 {/* Action Buttons */}
                 <div className="flex flex-wrap gap-4 mt-8 pt-6 border-t border-gray-200">

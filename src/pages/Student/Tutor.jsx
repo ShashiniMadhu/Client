@@ -12,7 +12,6 @@ const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
 const TutoePage = () => {
   const { userData, userRole, loading: userLoading, error: userError } = useUserData();
   const navigate = useNavigate();
-
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -147,7 +146,7 @@ const TutoePage = () => {
   });
 
   // Sort logic
-  const sortedClasses = [...filteredClasses].sort((a, b) => {
+  const sortedClasses = [...filteredClasses].sort((a, b) => {//temporary array
     switch (sortBy) {
       case 'title':
         return a.title.localeCompare(b.title);
@@ -450,7 +449,7 @@ const TutoePage = () => {
                   <ClassCard
                     classData={classData}
                     onSchedule={handleSchedule}
-                    onMentorProfileClick={handleMentorProfileClick}
+                    onMentorProfileClick={handleMentorProfileClick}//props
                   />
                 </div>
               ))}
